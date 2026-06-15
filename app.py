@@ -5,54 +5,97 @@ import torchvision.transforms as transforms
 import torchvision.models as models
 from PIL import Image
 import json
+import base64
 
-# ---- Page config ----
-st.set_page_config(
-    page_title="CropGuard AI",
-    page_icon="🌿",
-    layout="wide"
-)
+st.set_page_config(page_title="CropGuard AI", page_icon="🌿", layout="wide")
 
-# ---- Custom CSS ----
-st.markdown("""
+def get_base64_image(image_path):
+    with open(image_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+bg = get_base64_image("bg.jpg")
+
+st.markdown(f"""
 <style>
-    .main { background-color: #0e1117; }
-    .hero { text-align: center; padding: 2rem 0; }
-    .hero h1 { font-size: 3rem; color: #2ecc71; margin-bottom: 0; }
-    .hero p { font-size: 1.2rem; color: #888; }
-    .result-card {
-        background: #1e2530;
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border-left: 4px solid #2ecc71;
-    }
-    .disease-card {
-        background: #1e2530;
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border-left: 4px solid #e74c3c;
-    }
-    .stat-box {
-        background: #1e2530;
-        border-radius: 12px;
-        padding: 1rem;
-        text-align: center;
-    }
-    .stat-number { font-size: 2rem; font-weight: bold; color: #2ecc71; }
-    .stat-label { color: #888; font-size: 0.9rem; }
-    .upload-section {
-        border: 2px dashed #2ecc71;
-        border-radius: 16px;
-        padding: 2rem;
-        text-align: center;
-    }
-    .footer { text-align: center; color: #444; padding: 2rem; font-size: 0.8rem; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+*, *::before, *::after {{ font-family: 'Inter', sans-serif; box-sizing: border-box; }}
+.stApp {{
+    background-image: url("data:image/jpg;base64,{bg}");
+    background-size: cover; background-position: center; background-attachment: fixed;
+}}
+.stApp::before {{
+    content: ''; position: fixed; inset: 0;
+    background: linear-gradient(160deg, rgba(240,248,240,0.82) 0%, rgba(230,245,235,0.78) 40%, rgba(220,238,248,0.80) 100%);
+    z-index: 0; backdrop-filter: blur(1px);
+}}
+[data-testid="stAppViewContainer"] > .main > .block-container {{
+    position: relative; z-index: 1; max-width: 1120px; padding-top: 0 !important;
+}}
+section[data-testid="stSidebar"] {{ display: none; }}
+[data-testid="stHeader"] {{ background: transparent !important; }}
+[data-testid="stHorizontalBlock"] {{
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; padding: 0 !important; min-height: 0 !important;
+}}
+[data-testid="stHorizontalBlock"] > div {{
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; min-height: 0 !important;
+}}
+[data-testid="stFileUploaderDropzoneInstructions"],
+[data-testid="stFileUploader"] > div > div:nth-child(2) {{ display: none !important; }}
+.hero {{ text-align: center; padding: 1.8rem 0 0.8rem; }}
+.hero-badge {{
+    display: inline-block; background: rgba(80,140,100,0.12);
+    border: 1px solid rgba(80,140,100,0.30); color: #3a7a52;
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.12em;
+    padding: 0.25rem 1rem; border-radius: 999px; margin-bottom: 0.7rem; text-transform: uppercase;
+}}
+.hero h1 {{ font-size: 2.8rem; font-weight: 700; color: #1a3a28; margin: 0.2rem 0 0.3rem; letter-spacing: -0.03em; text-shadow: 0 2px 20px rgba(255,255,255,0.8); }}
+.hero h1 .g {{ color: #2e7d52; }}
+.hero p {{ font-size: 0.95rem; color: #4a6858; margin-top: 0.2rem; }}
+.stat-grid {{ display: grid; grid-template-columns: repeat(4,1fr); gap: 0.65rem; margin: 0.8rem 0; }}
+.stat-card {{
+    background: rgba(185,225,195,0.97); border: 1.5px solid rgba(60,120,80,0.45);
+    border-top: 2px solid rgba(60,130,80,0.65); border-radius: 14px; padding: 0.85rem;
+    text-align: center; box-shadow: 0 4px 16px rgba(0,80,40,0.10);
+}}
+.stat-number {{ font-size: 1.7rem; font-weight: 700; color: #1a4a28; }}
+.stat-label {{ color: #2a4a30; font-size: 0.65rem; margin-top: 0.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }}
+.divider {{ border: none; border-top: 1px solid rgba(80,140,100,0.18); margin: 0.7rem 0; }}
+.glass-panel {{
+    background: rgba(185,225,195,0.97); border: 1.5px solid rgba(60,120,80,0.55);
+    border-top: 2px solid rgba(60,130,80,0.75); border-radius: 18px;
+    padding: 1.3rem; box-shadow: 0 8px 32px rgba(0,80,40,0.18); margin-bottom: 1rem;
+}}
+.panel-title {{ font-size: 0.85rem; font-weight: 700; color: #0e3018; margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 2px solid rgba(40,100,60,0.35); }}
+.metric-row {{ display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 0.6rem 0; }}
+.metric-card {{ background: rgba(140,195,120,0.55); border: 1.5px solid rgba(60,120,50,0.50); border-top: 2px solid rgba(60,120,50,0.70); border-radius: 12px; padding: 0.75rem 1rem; }}
+.metric-label {{ font-size: 0.68rem; font-weight: 700; color: #1a3a10; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.25rem; }}
+.metric-value {{ font-size: 1.3rem; font-weight: 800; color: #0d2008; }}
+.disease-banner {{ background: rgba(220,80,80,0.08); border: 1px solid rgba(200,80,80,0.22); border-left: 3px solid #d47070; border-radius: 0 10px 10px 0; padding: 0.8rem 1rem; margin-bottom: 0.8rem; }}
+.healthy-banner {{ background: rgba(60,160,100,0.12); border: 1px solid rgba(60,160,100,0.28); border-left: 3px solid #4aaa78; border-radius: 0 10px 10px 0; padding: 0.8rem 1rem; margin-bottom: 0.8rem; }}
+.banner-title {{ font-size: 0.98rem; font-weight: 700; color: #1a3228; }}
+.banner-sub {{ font-size: 0.76rem; color: #2a4a20; margin-top: 0.2rem; font-weight: 600; }}
+.treatment-box {{ background: rgba(160,200,120,0.35); border: 1px solid rgba(100,140,60,0.32); border-left: 3px solid #6aaa40; border-radius: 0 10px 10px 0; padding: 0.85rem 1rem; margin-top: 0.8rem; }}
+.treatment-title {{ font-size: 0.65rem; color: #1a3010; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }}
+.treatment-text {{ font-size: 0.82rem; color: #1a3010; line-height: 1.65; font-weight: 600; }}
+.pred-label {{ font-size: 0.82rem; font-weight: 700; color: #1e3a10; margin-bottom: 0.15rem; display: block; }}
+.placeholder-box {{ background: rgba(185,225,195,0.60); border: 1.5px dashed rgba(60,120,80,0.40); border-radius: 14px; padding: 2.5rem 2rem; text-align: center; margin-top: 1rem; }}
+.placeholder-text {{ font-size: 0.80rem; font-weight: 600; color: #1e4028; }}
+[data-testid="stFileUploader"] label, [data-testid="stFileUploader"] label p {{ color: #1a3a10 !important; font-weight: 700 !important; font-size: 0.94rem !important; }}
+.steps-grid {{ display: grid; grid-template-columns: repeat(3,1fr); gap: 0.65rem; margin: 0.5rem 0 1rem; }}
+.step-card {{ background: rgba(185,225,195,0.97); border: 1.5px solid rgba(60,120,80,0.35); border-top: 2px solid rgba(60,120,80,0.55); border-radius: 14px; padding: 0.9rem; box-shadow: 0 4px 14px rgba(0,80,40,0.10); }}
+.step-number {{ font-size: 1.3rem; font-weight: 700; color: rgba(46,100,60,0.35); line-height: 1; }}
+.step-title {{ font-size: 0.82rem; font-weight: 700; color: #1e4228; margin: 0.3rem 0 0.2rem; }}
+.step-desc {{ font-size: 0.73rem; color: #1e4028; line-height: 1.55; font-weight: 500; }}
+.crops-grid {{ display: grid; grid-template-columns: repeat(5,1fr); gap: 0.5rem; margin: 0.5rem 0; }}
+.crop-pill {{ background: rgba(185,225,195,0.97); border: 1.5px solid rgba(60,120,80,0.30); border-radius: 10px; padding: 0.55rem 0.3rem; text-align: center; font-size: 0.73rem; color: #1e4228; font-weight: 600; box-shadow: 0 2px 8px rgba(0,80,40,0.08); }}
+.crop-emoji {{ font-size: 1.1rem; display: block; margin-bottom: 0.18rem; }}
+.section-label {{ font-size: 0.65rem; font-weight: 700; color: #1e3a18; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.6rem; }}
+.footer {{ text-align: center; color: #1e3a18; padding: 1.2rem; font-size: 0.72rem; line-height: 1.9; border-top: 1px solid rgba(80,140,100,0.18); margin-top: 1rem; font-weight: 500; }}
 </style>
 """, unsafe_allow_html=True)
 
-# ---- Treatment database ----
 treatments = {
     "Apple___Apple_scab": "Apply fungicides containing captan or myclobutanil. Remove and destroy infected leaves.",
     "Apple___Black_rot": "Prune infected branches. Apply copper-based fungicide every 7-10 days.",
@@ -79,75 +122,91 @@ treatments = {
     "Tomato___Tomato_Yellow_Leaf_Curl_Virus": "Remove infected plants. Control whitefly population with insecticide.",
     "Tomato___Tomato_mosaic_virus": "Remove infected plants. Disinfect tools. Control aphids.",
     "Tomato___healthy": "No treatment needed. Continue regular care.",
+    "Strawberry___Leaf_scorch": "Remove infected leaves. Apply fungicide containing captan. Avoid overhead watering.",
+    "Strawberry___healthy": "No treatment needed. Continue regular care.",
+    "Peach___Bacterial_spot": "Apply copper-based bactericide in early spring. Prune infected branches.",
+    "Peach___healthy": "No treatment needed. Continue regular care.",
+    "Cherry_(including_sour)___Powdery_mildew": "Apply sulfur-based fungicide. Ensure good air circulation.",
+    "Cherry_(including_sour)___healthy": "No treatment needed. Continue regular care.",
+    "Blueberry___healthy": "No treatment needed. Continue regular care.",
+    "Pepper,_bell___Bacterial_spot": "Apply copper bactericide. Avoid overhead irrigation.",
+    "Pepper,_bell___healthy": "No treatment needed. Continue regular care.",
+    "Soybean___healthy": "No treatment needed. Continue regular care.",
+    "Squash___Powdery_mildew": "Apply potassium bicarbonate or neem oil. Improve air circulation.",
+    "Raspberry___healthy": "No treatment needed. Continue regular care.",
+    "Orange___Haunglongbing_(Citrus_greening)": "No cure available. Remove infected trees. Control psyllid insects.",
 }
 
-def get_treatment(class_name):
-    return treatments.get(class_name, "Consult your local Krishi Vigyan Kendra for specific treatment advice.")
+def get_treatment(cls):
+    return treatments.get(cls, "Consult your local Krishi Vigyan Kendra for specific treatment advice.")
 
-# ---- Load model ----
+def pbar(pct, h=8):
+    return (
+        '<div style="background:rgba(60,120,80,0.18);border-radius:999px;'
+        f'height:{h}px;overflow:hidden;margin:0.25rem 0 0.6rem;">'
+        f'<div style="width:{pct:.1f}%;background:#2e7d52;height:100%;border-radius:999px;"></div>'
+        '</div>'
+    )
+
 @st.cache_resource
 def load_model():
-    with open('class_names.json', 'r') as f:
+    with open('class_names.json') as f:
         class_names = json.load(f)
     model = models.resnet50(weights=None)
     model.fc = nn.Sequential(
-        nn.Linear(2048, 512), nn.ReLU(),
-        nn.Dropout(0.4), nn.Linear(512, 38)
+        nn.Linear(2048, 512), nn.ReLU(), nn.Dropout(0.4), nn.Linear(512, 38)
     )
     model.load_state_dict(torch.load('best_model.pth', map_location='cpu'))
     model.eval()
     return model, class_names
 
 transform = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
+    transforms.Resize(256), transforms.CenterCrop(224),
     transforms.ToTensor(),
     transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])
 ])
 
-# ---- Header ----
+model, class_names = load_model()
+
 st.markdown("""
 <div class="hero">
-    <h1>🌿 CropGuard AI</h1>
-    <p>AI-powered crop disease detection for Indian farmers | 99.57% Accuracy</p>
+    <div class="hero-badge">AI-Powered · ResNet-50 · PlantVillage</div>
+    <h1>Crop<span class="g">Guard</span> AI</h1>
+    <p>Instant crop disease detection for Indian farmers — snap, upload, protect.</p>
 </div>
 """, unsafe_allow_html=True)
 
-# ---- Stats row ----
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    st.markdown('<div class="stat-box"><div class="stat-number">99.57%</div><div class="stat-label">Accuracy</div></div>', unsafe_allow_html=True)
-with col2:
-    st.markdown('<div class="stat-box"><div class="stat-number">38</div><div class="stat-label">Disease Classes</div></div>', unsafe_allow_html=True)
-with col3:
-    st.markdown('<div class="stat-box"><div class="stat-number">87K</div><div class="stat-label">Training Images</div></div>', unsafe_allow_html=True)
-with col4:
-    st.markdown('<div class="stat-box"><div class="stat-number">14</div><div class="stat-label">Crop Types</div></div>', unsafe_allow_html=True)
+st.markdown("""
+<div class="stat-grid">
+    <div class="stat-card"><div class="stat-number">99.57%</div><div class="stat-label">Accuracy</div></div>
+    <div class="stat-card"><div class="stat-number">38</div><div class="stat-label">Disease Classes</div></div>
+    <div class="stat-card"><div class="stat-number">87K</div><div class="stat-label">Training Images</div></div>
+    <div class="stat-card"><div class="stat-number">14</div><div class="stat-label">Crop Types</div></div>
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown("---")
+st.markdown('<hr class="divider">', unsafe_allow_html=True)
 
-# ---- Main layout ----
-left, right = st.columns([1, 1], gap="large")
+uploaded_file = st.file_uploader("📂 Upload a clear leaf photo (JPG or PNG)", type=["jpg","jpeg","png"])
 
-with left:
-    st.markdown("### 📸 Upload Leaf Image")
-    uploaded_file = st.file_uploader(
-        "Choose a clear photo of a single leaf",
-        type=["jpg", "jpeg", "png"],
-        label_visibility="collapsed"
-    )
-    if uploaded_file:
+image = None
+if uploaded_file:
+    try:
         image = Image.open(uploaded_file).convert('RGB')
-        st.image(image, caption="Uploaded Leaf", use_container_width=True)
+    except Exception as e:
+        st.error(f"Could not read image: {e}")
 
-with right:
-    st.markdown("### 🔬 Analysis Results")
-    if not uploaded_file:
-        st.info("👈 Upload a leaf image to get instant disease detection results.")
-        st.markdown("**Supported crops:**")
-        st.markdown("🍎 Apple · 🌽 Corn · 🍇 Grape · 🥔 Potato · 🍅 Tomato · and more")
-    else:
-        model, class_names = load_model()
+if not image:
+    st.markdown('<div class="placeholder-box"><div style="font-size:1.6rem;margin-bottom:0.4rem;">🌿</div><div class="placeholder-text">Upload a leaf photo above — your preview and analysis will appear here.</div></div>', unsafe_allow_html=True)
+else:
+    left, right = st.columns([1, 1], gap="large")
+
+    with left:
+        st.markdown('<div class="glass-panel"><div class="panel-title">📸 Leaf Preview</div>', unsafe_allow_html=True)
+        st.image(image, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with right:
         with st.spinner("🔍 Analysing your crop..."):
             tensor = transform(image).unsqueeze(0)
             with torch.no_grad():
@@ -155,50 +214,105 @@ with right:
                 probs = torch.softmax(output, 1)[0]
                 top3 = torch.topk(probs, 3)
 
-        predicted_class = class_names[top3.indices[0].item()]
-        confidence = top3.values[0].item() * 100
-        parts = predicted_class.split('___')
-        crop = parts[0].replace('_', ' ')
+        pred  = class_names[top3.indices[0].item()]
+        conf  = top3.values[0].item() * 100
+        parts = pred.split('___')
+        crop  = parts[0].replace('_', ' ')
         disease = parts[1].replace('_', ' ') if len(parts) > 1 else 'Unknown'
-        is_healthy = 'healthy' in predicted_class.lower()
+        healthy = 'healthy' in pred.lower()
 
-        # Result
-        if is_healthy:
-            st.success(f"✅ **{crop}** plant is **Healthy!**")
+        if healthy:
+            banner = (
+                '<div class="healthy-banner">'
+                '<div class="banner-title">✅ ' + crop + ' is Healthy</div>'
+                '<div class="banner-sub">No disease detected. Keep up the good care!</div>'
+                '</div>'
+            )
         else:
-            st.error(f"⚠️ **{disease}** detected in **{crop}**!")
+            banner = (
+                '<div class="disease-banner">'
+                '<div class="banner-title">⚠️ ' + disease + '</div>'
+                '<div class="banner-sub">Detected in ' + crop + ' plant</div>'
+                '</div>'
+            )
 
-        # Metrics
-        m1, m2 = st.columns(2)
-        m1.metric("🌱 Crop", crop)
-        m2.metric("🦠 Status", "Healthy ✅" if is_healthy else "Diseased ⚠️")
+        metrics = (
+            '<div class="metric-row">'
+            '<div class="metric-card"><div class="metric-label">🌱 Crop</div>'
+            '<div class="metric-value">' + crop + '</div></div>'
+            '<div class="metric-card"><div class="metric-label">🎯 Confidence</div>'
+            '<div class="metric-value">' + f'{conf:.1f}%' + '</div></div>'
+            '</div>'
+        )
 
-        # Confidence
-        st.markdown(f"**Confidence: {confidence:.1f}%**")
-        st.progress(confidence / 100)
+        conf_bar = pbar(conf, 9)
 
-        # Treatment
-        st.markdown("### 💊 Treatment Advice")
-        treatment = get_treatment(predicted_class)
-        if is_healthy:
-            st.success(f"🌱 {treatment}")
-        else:
-            st.warning(f"💡 {treatment}")
+        treatment = (
+            '<div class="treatment-box">'
+            '<div class="treatment-title">💊 Treatment Advice</div>'
+            '<div class="treatment-text">' + get_treatment(pred) + '</div>'
+            '</div>'
+        )
 
-        # Top 3
-        with st.expander("📊 See Top 3 Predictions"):
-            for i in range(3):
-                cls = class_names[top3.indices[i].item()]
-                prob = top3.values[i].item() * 100
-                parts2 = cls.split('___')
-                label = f"{parts2[0].replace('_',' ')} — {parts2[1].replace('_',' ') if len(parts2)>1 else ''}"
-                st.progress(prob / 100, text=f"{label}: {prob:.1f}%")
+        top3_rows = ''
+        for i in range(3):
+            cls  = class_names[top3.indices[i].item()]
+            prob = top3.values[i].item() * 100
+            p2   = cls.split('___')
+            lbl  = p2[0].replace('_', ' ') + ' — ' + (p2[1].replace('_', ' ') if len(p2) > 1 else '')
+            top3_rows += '<span class="pred-label">' + lbl + ': ' + f'{prob:.1f}%' + '</span>' + pbar(prob, 7)
 
-# ---- Footer ----
-st.markdown("---")
+        top3_block = (
+            '<details style="margin-top:0.8rem;">'
+            '<summary style="cursor:pointer;font-size:0.82rem;font-weight:700;color:#1e3a08;'
+            'padding:0.5rem;background:rgba(140,190,100,0.30);border-radius:8px;list-style:none;">'
+            '📊 Top 3 Predictions</summary>'
+            '<div style="padding:0.6rem 0.2rem 0.2rem;">' + top3_rows + '</div>'
+            '</details>'
+        )
+
+        html = (
+            '<div class="glass-panel">'
+            '<div class="panel-title">🔬 Analysis Results</div>'
+            + banner + metrics + conf_bar + treatment + top3_block +
+            '</div>'
+        )
+
+        st.markdown(html, unsafe_allow_html=True)
+
+st.markdown('<hr class="divider">', unsafe_allow_html=True)
+st.markdown('<div class="section-label">How it works</div>', unsafe_allow_html=True)
+st.markdown("""
+<div class="steps-grid">
+    <div class="step-card"><div class="step-number">01</div><div class="step-title">📸 Take a clear photo</div><div class="step-desc">Close-up of a single leaf in good natural lighting. Avoid blurry or dark images.</div></div>
+    <div class="step-card"><div class="step-number">02</div><div class="step-title">⬆️ Upload the image</div><div class="step-desc">Upload your JPG or PNG above. Our ResNet-50 model processes it instantly.</div></div>
+    <div class="step-card"><div class="step-number">03</div><div class="step-title">💊 Get treatment advice</div><div class="step-desc">Receive instant diagnosis with confidence score and actionable treatment steps.</div></div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="section-label">Supported Crops</div>', unsafe_allow_html=True)
+st.markdown("""
+<div class="crops-grid">
+    <div class="crop-pill"><span class="crop-emoji">🍎</span>Apple</div>
+    <div class="crop-pill"><span class="crop-emoji">🌽</span>Corn</div>
+    <div class="crop-pill"><span class="crop-emoji">🍇</span>Grape</div>
+    <div class="crop-pill"><span class="crop-emoji">🥔</span>Potato</div>
+    <div class="crop-pill"><span class="crop-emoji">🍅</span>Tomato</div>
+    <div class="crop-pill"><span class="crop-emoji">🍑</span>Peach</div>
+    <div class="crop-pill"><span class="crop-emoji">🍒</span>Cherry</div>
+    <div class="crop-pill"><span class="crop-emoji">🫐</span>Blueberry</div>
+    <div class="crop-pill"><span class="crop-emoji">🌶️</span>Pepper</div>
+    <div class="crop-pill"><span class="crop-emoji">🍓</span>Strawberry</div>
+    <div class="crop-pill"><span class="crop-emoji">🌿</span>Soybean</div>
+    <div class="crop-pill"><span class="crop-emoji">🎃</span>Squash</div>
+    <div class="crop-pill"><span class="crop-emoji">🍊</span>Orange</div>
+    <div class="crop-pill"><span class="crop-emoji">🍇</span>Raspberry</div>
+</div>
+""", unsafe_allow_html=True)
+
 st.markdown("""
 <div class="footer">
-    Built with ❤️ using ResNet-50 + PyTorch | Trained on PlantVillage Dataset<br>
-    For farmers across India 🇮🇳 | Krishi Vigyan Kendra Partner Ready
+    Built with ❤️ using ResNet-50 + PyTorch · Trained on PlantVillage Dataset (87K images)<br>
+    For farmers across India 🇮🇳 · Kisan Call Centre: 1800-180-1551 (Free, 24/7)
 </div>
 """, unsafe_allow_html=True)
