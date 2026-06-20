@@ -267,7 +267,9 @@ else:
 
     with left:
         st.markdown('<div class="glass-panel"><div class="panel-title">📸 Leaf Preview</div>', unsafe_allow_html=True)
-        st.image(image, use_container_width=True)
+       col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.image(gradcam_img, width=400)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with right:
