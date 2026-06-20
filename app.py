@@ -334,9 +334,9 @@ else:
     # Grad-CAM section
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
     st.markdown('<div class="glass-panel"><div class="panel-title">🔥 Grad-CAM — Where the AI Looked</div>', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1.2, 1, 1.2])
     with col2:
-        st.image(gradcam_img, width=400)
+        st.image(gradcam_img, use_container_width=True)
     st.markdown('<div class="gradcam-note">🔴 Red/warm areas = parts of the leaf the AI focused on most to make its prediction.</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
