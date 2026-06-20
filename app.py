@@ -6,6 +6,8 @@ import torchvision.models as models
 from PIL import Image
 import json
 import base64
+import numpy as np
+import cv2
 
 st.set_page_config(page_title="CropGuard AI", page_icon="🌿", layout="wide")
 
@@ -92,6 +94,7 @@ section[data-testid="stSidebar"] {{ display: none; }}
 .crop-pill {{ background: rgba(185,225,195,0.97); border: 1.5px solid rgba(60,120,80,0.30); border-radius: 10px; padding: 0.55rem 0.3rem; text-align: center; font-size: 0.73rem; color: #1e4228; font-weight: 600; box-shadow: 0 2px 8px rgba(0,80,40,0.08); }}
 .crop-emoji {{ font-size: 1.1rem; display: block; margin-bottom: 0.18rem; }}
 .section-label {{ font-size: 0.65rem; font-weight: 700; color: #1e3a18; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.6rem; }}
+.gradcam-note {{ font-size: 0.72rem; color: #2a4a20; font-weight: 600; margin-top: 0.5rem; text-align: center; font-style: italic; }}
 .footer {{ text-align: center; color: #1e3a18; padding: 1.2rem; font-size: 0.72rem; line-height: 1.9; border-top: 1px solid rgba(80,140,100,0.18); margin-top: 1rem; font-weight: 500; }}
 </style>
 """, unsafe_allow_html=True)
@@ -160,6 +163,67 @@ def load_model():
     model.eval()
     return model, class_names
 
+# ── Grad-CAM ────────────────────────────────────────────────────────────────
+def generate_gradcam(model, tensor, class_idx):
+    """
+    Generates a Grad-CAM heatmap for the given image tensor and predicted class.
+    Returns a PIL Image of the heatmap overlaid on the original image.
+    """
+    gradients = []
+    activations = []
+
+    # Hook into the last conv layer (layer4) to capture gradients & activations
+    def backward_hook(module, grad_input, grad_output):
+        gradients.append(grad_output[0])
+
+    def forward_hook(module, input, output):
+        activations.append(output)
+
+    handle_f = model.layer4.register_forward_hook(forward_hook)
+    handle_b = model.layer4.register_full_backward_hook(backward_hook)
+
+    # Forward pass WITH gradients enabled
+    output = model(tensor)
+    model.zero_grad()
+    # Backprop only for the predicted class
+    output[0, class_idx].backward()
+
+    handle_f.remove()
+    handle_b.remove()
+
+    # Pool gradients across channels
+    grads = gradients[0].detach()          # (1, C, H, W)
+    acts  = activations[0].detach()        # (1, C, H, W)
+    weights = grads.mean(dim=[2, 3], keepdim=True)  # (1, C, 1, 1)
+
+    # Weighted combination of activation maps
+    cam = (weights * acts).sum(dim=1, keepdim=True)  # (1, 1, H, W)
+    cam = torch.relu(cam)
+    cam = cam.squeeze().numpy()
+
+    # Normalise to 0-255
+    cam = cam - cam.min()
+    if cam.max() > 0:
+        cam = cam / cam.max()
+    cam = (cam * 255).astype(np.uint8)
+
+    # Resize to match input image size (224x224)
+    cam_resized = cv2.resize(cam, (224, 224))
+
+    # Apply colour map and overlay on original image
+    heatmap = cv2.applyColorMap(cam_resized, cv2.COLORMAP_JET)
+    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+
+    # Convert original tensor back to numpy image
+    orig = tensor.squeeze().permute(1, 2, 0).numpy()
+    orig = orig * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
+    orig = np.clip(orig * 255, 0, 255).astype(np.uint8)
+
+    # Blend heatmap with original image
+    overlay = cv2.addWeighted(orig, 0.55, heatmap, 0.45, 0)
+    return Image.fromarray(overlay)
+# ────────────────────────────────────────────────────────────────────────────
+
 transform = transforms.Compose([
     transforms.Resize(256), transforms.CenterCrop(224),
     transforms.ToTensor(),
@@ -209,17 +273,23 @@ else:
     with right:
         with st.spinner("🔍 Analysing your crop..."):
             tensor = transform(image).unsqueeze(0)
+
+            # Prediction (no_grad for speed)
             with torch.no_grad():
                 output = model(tensor)
                 probs = torch.softmax(output, 1)[0]
                 top3 = torch.topk(probs, 3)
 
-        pred  = class_names[top3.indices[0].item()]
-        conf  = top3.values[0].item() * 100
-        parts = pred.split('___')
-        crop  = parts[0].replace('_', ' ')
-        disease = parts[1].replace('_', ' ') if len(parts) > 1 else 'Unknown'
-        healthy = 'healthy' in pred.lower()
+            pred_idx = top3.indices[0].item()
+            pred  = class_names[pred_idx]
+            conf  = top3.values[0].item() * 100
+            parts = pred.split('___')
+            crop  = parts[0].replace('_', ' ')
+            disease = parts[1].replace('_', ' ') if len(parts) > 1 else 'Unknown'
+            healthy = 'healthy' in pred.lower()
+
+            # Generate Grad-CAM (needs gradients, so run separately)
+            gradcam_img = generate_gradcam(model, tensor, pred_idx)
 
         if healthy:
             banner = (
@@ -279,6 +349,13 @@ else:
         )
 
         st.markdown(html, unsafe_allow_html=True)
+
+    # Grad-CAM section below both columns
+    st.markdown('<hr class="divider">', unsafe_allow_html=True)
+    st.markdown('<div class="glass-panel"><div class="panel-title">🔥 Grad-CAM — Where the AI Looked</div>', unsafe_allow_html=True)
+    st.image(gradcam_img, use_container_width=True)
+    st.markdown('<div class="gradcam-note">🔴 Red/warm areas = parts of the leaf the AI focused on most to make its prediction.</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<hr class="divider">', unsafe_allow_html=True)
 st.markdown('<div class="section-label">How it works</div>', unsafe_allow_html=True)
