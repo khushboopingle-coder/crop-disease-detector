@@ -163,16 +163,10 @@ def load_model():
     model.eval()
     return model, class_names
 
-# ── Grad-CAM ────────────────────────────────────────────────────────────────
 def generate_gradcam(model, tensor, class_idx):
-    """
-    Generates a Grad-CAM heatmap for the given image tensor and predicted class.
-    Returns a PIL Image of the heatmap overlaid on the original image.
-    """
     gradients = []
     activations = []
 
-    # Hook into the last conv layer (layer4) to capture gradients & activations
     def backward_hook(module, grad_input, grad_output):
         gradients.append(grad_output[0])
 
@@ -182,52 +176,41 @@ def generate_gradcam(model, tensor, class_idx):
     handle_f = model.layer4.register_forward_hook(forward_hook)
     handle_b = model.layer4.register_full_backward_hook(backward_hook)
 
-    # Forward pass WITH gradients enabled
     output = model(tensor)
     model.zero_grad()
-    # Backprop only for the predicted class
     output[0, class_idx].backward()
 
     handle_f.remove()
     handle_b.remove()
 
-    # Pool gradients across channels
-    grads = gradients[0].detach()          # (1, C, H, W)
-    acts  = activations[0].detach()        # (1, C, H, W)
-    weights = grads.mean(dim=[2, 3], keepdim=True)  # (1, C, 1, 1)
+    grads = gradients[0].detach()
+    acts = activations[0].detach()
+    weights = grads.mean(dim=[2, 3], keepdim=True)
 
-    # Weighted combination of activation maps
-    cam = (weights * acts).sum(dim=1, keepdim=True)  # (1, 1, H, W)
+    cam = (weights * acts).sum(dim=1, keepdim=True)
     cam = torch.relu(cam)
     cam = cam.squeeze().numpy()
 
-    # Normalise to 0-255
     cam = cam - cam.min()
     if cam.max() > 0:
         cam = cam / cam.max()
     cam = (cam * 255).astype(np.uint8)
 
-    # Resize to match input image size (224x224)
     cam_resized = cv2.resize(cam, (224, 224))
-
-    # Apply colour map and overlay on original image
     heatmap = cv2.applyColorMap(cam_resized, cv2.COLORMAP_JET)
     heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
 
-    # Convert original tensor back to numpy image
     orig = tensor.squeeze().permute(1, 2, 0).numpy()
     orig = orig * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
     orig = np.clip(orig * 255, 0, 255).astype(np.uint8)
 
-    # Blend heatmap with original image
     overlay = cv2.addWeighted(orig, 0.55, heatmap, 0.45, 0)
     return Image.fromarray(overlay)
-# ────────────────────────────────────────────────────────────────────────────
 
 transform = transforms.Compose([
     transforms.Resize(256), transforms.CenterCrop(224),
     transforms.ToTensor(),
-    transforms.Normalize([0.485,0.456,0.406],[0.229,0.224,0.225])
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
 model, class_names = load_model()
@@ -251,7 +234,7 @@ st.markdown("""
 
 st.markdown('<hr class="divider">', unsafe_allow_html=True)
 
-uploaded_file = st.file_uploader("📂 Upload a clear leaf photo (JPG or PNG)", type=["jpg","jpeg","png"])
+uploaded_file = st.file_uploader("📂 Upload a clear leaf photo (JPG or PNG)", type=["jpg", "jpeg", "png"])
 
 image = None
 if uploaded_file:
@@ -267,30 +250,26 @@ else:
 
     with left:
         st.markdown('<div class="glass-panel"><div class="panel-title">📸 Leaf Preview</div>', unsafe_allow_html=True)
-       col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    st.image(gradcam_img, width=400)
+        st.image(image, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with right:
         with st.spinner("🔍 Analysing your crop..."):
             tensor = transform(image).unsqueeze(0)
 
-            # Prediction (no_grad for speed)
             with torch.no_grad():
                 output = model(tensor)
                 probs = torch.softmax(output, 1)[0]
                 top3 = torch.topk(probs, 3)
 
             pred_idx = top3.indices[0].item()
-            pred  = class_names[pred_idx]
-            conf  = top3.values[0].item() * 100
+            pred = class_names[pred_idx]
+            conf = top3.values[0].item() * 100
             parts = pred.split('___')
-            crop  = parts[0].replace('_', ' ')
+            crop = parts[0].replace('_', ' ')
             disease = parts[1].replace('_', ' ') if len(parts) > 1 else 'Unknown'
             healthy = 'healthy' in pred.lower()
 
-            # Generate Grad-CAM (needs gradients, so run separately)
             gradcam_img = generate_gradcam(model, tensor, pred_idx)
 
         if healthy:
@@ -328,10 +307,10 @@ with col2:
 
         top3_rows = ''
         for i in range(3):
-            cls  = class_names[top3.indices[i].item()]
+            cls = class_names[top3.indices[i].item()]
             prob = top3.values[i].item() * 100
-            p2   = cls.split('___')
-            lbl  = p2[0].replace('_', ' ') + ' — ' + (p2[1].replace('_', ' ') if len(p2) > 1 else '')
+            p2 = cls.split('___')
+            lbl = p2[0].replace('_', ' ') + ' — ' + (p2[1].replace('_', ' ') if len(p2) > 1 else '')
             top3_rows += '<span class="pred-label">' + lbl + ': ' + f'{prob:.1f}%' + '</span>' + pbar(prob, 7)
 
         top3_block = (
@@ -352,14 +331,14 @@ with col2:
 
         st.markdown(html, unsafe_allow_html=True)
 
-   # Grad-CAM section below both columns
-st.markdown('<hr class="divider">', unsafe_allow_html=True)
-st.markdown('<div class="glass-panel"><div class="panel-title">🔥 Grad-CAM — Where the AI Looked</div>', unsafe_allow_html=True)
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-st.image(gradcam_img, width=400)
-st.markdown('<div class="gradcam-note">🔴 Red/warm areas = parts of the leaf the AI focused on most to make its prediction.</div>', unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
+    # Grad-CAM section
+    st.markdown('<hr class="divider">', unsafe_allow_html=True)
+    st.markdown('<div class="glass-panel"><div class="panel-title">🔥 Grad-CAM — Where the AI Looked</div>', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image(gradcam_img, width=400)
+    st.markdown('<div class="gradcam-note">🔴 Red/warm areas = parts of the leaf the AI focused on most to make its prediction.</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<hr class="divider">', unsafe_allow_html=True)
 st.markdown('<div class="section-label">How it works</div>', unsafe_allow_html=True)
