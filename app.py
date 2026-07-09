@@ -99,14 +99,22 @@ section[data-testid="stSidebar"] {{ display: none; }}
 .section-label {{ font-size: 0.65rem; font-weight: 700; color: #1e3a18; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.6rem; }}
 .gradcam-note {{ font-size: 0.72rem; color: #2a4a20; font-weight: 600; margin-top: 0.5rem; text-align: center; font-style: italic; }}
 .footer {{ text-align: center; color: #1e3a18; padding: 1.2rem; font-size: 0.72rem; line-height: 1.9; border-top: 1px solid rgba(80,140,100,0.18); margin-top: 1rem; font-weight: 500; }}
-.lang-selector-container {{ background: rgba(185,225,195,0.85); padding: 0.5rem 1rem; border-radius: 10px; border: 1px solid rgba(60,120,80,0.3); margin-bottom: 1rem; }}
+
+/* Olive Green Styling for Language Dropdown Label */
+.lang-container div[data-testid="stWidgetLabel"] p {{
+    color: #2e7d52 !important;
+    font-weight: 700 !important;
+}}
 </style>
 """, unsafe_allow_html=True)
 
-# Language Dictionary
+# Complete Multilingual Translations Mapping
 I18N = {
     "English": {
+        "title_pre": "Crop", "title_post": "Guard AI",
+        "badge_text": "AI-Powered · ResNet-50 · PlantVillage",
         "hero_sub": "Instant crop disease detection for Indian farmers — snap, upload, protect.",
+        "num_acc": "99.57%", "num_cls": "38", "num_imgs": "87K", "num_crops": "14",
         "stat_acc": "Accuracy", "stat_cls": "Disease Classes", "stat_imgs": "Training Images", "stat_crops": "Crop Types",
         "uploader_lbl": "📂 Upload a clear leaf photo (JPG or PNG)",
         "placeholder": "Upload a leaf photo above — your preview and analysis will appear here.",
@@ -115,15 +123,18 @@ I18N = {
         "top3_lbl": "📊 Top 3 Predictions", "gradcam_title": "🔥 Grad-CAM — Where the AI Looked",
         "gradcam_desc": "🔴 Red/warm areas = parts of the leaf the AI focused on most to make its prediction.",
         "how_works": "How it works", "supported_crops": "Supported Crops",
-        "step1_t": "📸 Take a clear photo", "step1_d": "Close-up of a single leaf in good natural lighting. Avoid blurry or dark images.",
-        "step2_t": "⬆️ Upload the image", "step2_d": "Upload your JPG or PNG above. Our ResNet-50 model processes it instantly.",
-        "step3_t": "💊 Get treatment advice", "step3_d": "Receive instant diagnosis with confidence score and actionable treatment steps.",
+        "step1_num": "01", "step1_t": "📸 Take a clear photo", "step1_d": "Close-up of a single leaf in good natural lighting. Avoid blurry or dark images.",
+        "step2_num": "02", "step2_t": "⬆️ Upload the image", "step2_d": "Upload your JPG or PNG above. Our ResNet-50 model processes it instantly.",
+        "step3_num": "03", "step3_t": "💊 Get treatment advice", "step3_d": "Receive instant diagnosis with confidence score and actionable treatment steps.",
         "healthy_sub": "No disease detected. Keep up the good care!", "healthy_title": "Healthy",
         "footer_text": "Built with ❤️ using ResNet-50 + PyTorch · Trained on PlantVillage Dataset (87K images)<br>For farmers across India 🇮🇳 · Kisan Call Centre: 1800-180-1551 (Free, 24/7)",
         "fallback_advice": "Consult your local Krishi Vigyan Kendra for specific treatment advice."
     },
     "हिन्दी": {
+        "title_pre": "क्रॉप", "title_post": "गार्ड AI",
+        "badge_text": "एआई-संचालित · ResNet-50 · प्लांटविलेज",
         "hero_sub": "भारतीय किसानों के लिए तत्काल फसल रोग की पहचान - फोटो लें, अपलोड करें, सुरक्षित करें।",
+        "num_acc": "९९.५७%", "num_cls": "३८", "num_imgs": "८७ हजार", "num_crops": "१४",
         "stat_acc": "सटीकता", "stat_cls": "रोग श्रेणियां", "stat_imgs": "प्रशिक्षण छवियां", "stat_crops": "फसलों के प्रकार",
         "uploader_lbl": "📂 पत्ती की एक साफ फोटो अपलोड करें (JPG या PNG)",
         "placeholder": "ऊपर पत्ती की फोटो अपलोड करें — आपका पूर्वावलोकन और विश्लेषण यहां दिखाई देगा।",
@@ -132,33 +143,36 @@ I18N = {
         "top3_lbl": "📊 शीर्ष 3 संभावित अनुमान", "gradcam_title": "🔥 Grad-CAM — एआई ने कहां देखा",
         "gradcam_desc": "🔴 लाल/गर्म क्षेत्र = पत्ती के वे हिस्से जिन पर एआई ने सटीक भविष्यवाणी करने के लिए सबसे अधिक ध्यान केंद्रित किया।",
         "how_works": "यह कैसे काम करता है", "supported_crops": "समर्थित फसलें",
-        "step1_t": "📸 साफ फोटो लें", "step1_d": "अच्छी प्राकृतिक रोशनी में एक पत्ती की पास से तस्वीर लें। धुंधली या अंधेरी छवियों से बचें।",
-        "step2_t": "⬆️ फोटो अपलोड करें", "step2_d": "अपनी JPG या PNG फाइल ऊपर अपलोड करें। हमारा ResNet-50 मॉडल तुरंत प्रोसेस करेगा।",
-        "step3_t": "💊 उपचार सलाह प्राप्त करें", "step3_d": "सटीकता स्कोर और व्यावहारिक उपचार चरणों के साथ तत्काल निदान प्राप्त करें।",
+        "step1_num": "०१", "step1_t": "📸 साफ फोटो लें", "step1_d": "अच्छी प्राकृतिक रोशनी में एक पत्ती की पास से तस्वीर लें। धुंधली या अंधेरी छवियों से बचें।",
+        "step2_num": "०२", "step2_t": "⬆️ फोटो अपलोड करें", "step2_d": "अपनी JPG या PNG फाइल ऊपर अपलोड करें। हमारा ResNet-50 मॉडल तुरंत प्रोसेस करेगा।",
+        "step3_num": "०३", "step3_t": "💊 उपचार सलाह प्राप्त करें", "step3_d": "सटीकता स्कोर और व्यावहारिक उपचार चरणों के साथ तत्काल निदान प्राप्त करें।",
         "healthy_sub": "कोई बीमारी नहीं मिली। अपनी फसलों की अच्छी देखभाल जारी रखें!", "healthy_title": "स्वस्थ है",
         "footer_text": "ResNet-50 + PyTorch के साथ ❤️ से निर्मित · प्लांटविलेज डेटासेट (87K इमेज) पर प्रशिक्षित<br>भारतीय किसानों के लिए 🇮🇳 · किसान कॉल सेंटर: 1800-180-1551 (निःशुल्क, 24/7)",
         "fallback_advice": "विशिष्ट उपचार सलाह के लिए अपने स्थानीय कृषि विज्ञान केंद्र से संपर्क करें।"
     },
     "मराठी": {
+        "title_pre": "क्रॉप", "title_post": "गार्ड एआई",
+        "badge_text": "एआय-चालित · ResNet-50 · प्लांटव्हिलेज",
         "hero_sub": "भारतीय शेतकऱ्यांसाठी त्वरित पीक रोग शोधक यंत्रणा — फोटो काढा, अपलोड करा, संरक्षण करा.",
+        "num_acc": "९९.५७%", "num_cls": "३८", "num_imgs": "८७ हजार", "num_crops": "१४",
         "stat_acc": "अचूकता", "stat_cls": "रोगांचे प्रकार", "stat_imgs": "एकूण चित्रे", "stat_crops": "पिकांचे प्रकार",
         "uploader_lbl": "📂 पानाचा स्पष्ट फोटो अपलोड करा (JPG किंवा PNG)",
         "placeholder": "वर पानाचा फोटो अपलोड करा — तुमचा प्रिव्ह्यू आणि विश्लेषण येथे दिसेल.",
         "preview_title": "📸 पानाचा प्रिव्ह्यू", "analysis_title": "🔬 विश्लेषणाचा निकाल",
         "crop_lbl": "🌱 पीक", "conf_lbl": "🎯 आत्मविश्वास", "treatment_lbl": "💊 उपचाराचा सल्ला",
-        "top3_lbl": "📊 टॉप ३ संभाव्य अंदाज", "gradcam_title": "🔥 Grad-CAM — एआय (AI) ने कुठे पाहिले",
+        "top3_lbl": "📊 टॉप ३ संभाव्य अंदाज", "gradcam_title": "🔥 Grad-CAM — एआई (AI) ने कुठे पाहिले",
         "gradcam_desc": "🔴 लाल/उबदार भाग = पानाचे ते भाग ज्यावर AI ने अंदाज लावण्यासाठी सर्वात जास्त लक्ष केंद्रित केले.",
         "how_works": "हे कसे कार्य करते", "supported_crops": "समर्थित पिके",
-        "step1_t": "📸 स्पष्ट फोटो काढा", "step1_d": "चांगल्या नैसर्गिक प्रकाशात एकाच पानाचा जवळून फोटो घ्या. अस्पष्ट किंवा गडद फोटो टाळा.",
-        "step2_t": "⬆️ इमेज अपलोड करा", "step2_d": "तुमचा JPG किंवा PNG फोटो वर अपलोड करा. आमचे ResNet-50 मॉडेल त्वरित प्रक्रिया करेल.",
-        "step3_t": "💊 उपचाराचा सल्ला मिळवा", "step3_d": "अचूकता टक्केवारी आणि आवश्यक उपचारांच्या चरणांसह त्वरित निदान मिळवा.",
+        "step1_num": "०१", "step1_t": "📸 स्पष्ट फोटो काढा", "step1_d": "चांगल्या नैसर्गिक प्रकाशात एकाच पानाचा जवळून फोटो घ्या. अस्पष्ट किंवा गडद फोटो टाळा.",
+        "step2_num": "०२", "step2_t": "⬆️ इमेज अपलोड करा", "step2_d": "तुमचा JPG किंवा PNG फोटो वर अपलोड करा. आमचे ResNet-50 मॉडेल त्वरित प्रक्रिया करेल.",
+        "step3_num": "०३", "step3_t": "💊 उपचाराचा सल्ला मिळवा", "step3_d": "अचूकता टक्केवारी आणि आवश्यक उपचारांच्या चरणांसह त्वरित निदान मिळवा.",
         "healthy_sub": "कोणताही रोग आढळला नाही. पिकाची अशीच उत्तम काळजी घेत राहा!", "healthy_title": "निरोगी आहे",
         "footer_text": "ResNet-50 + PyTorch वापरून ❤️ ने बनवलेले · प्लांटविलेज डेटासेटवर (87K चित्रे) प्रशिक्षित<br>भारतातील शेतकऱ्यांसाठी 🇮🇳 · किसान कॉल सेंटर: 1800-180-1551 (मोफत, २४/७)",
         "fallback_advice": "विशिष्ट उपचारांच्या सल्ल्यासाठी तुमच्या स्थानिक कृषी विज्ञान केंद्राशी संपर्क साधा।"
     }
 }
 
-# Crop and Disease translations
+# Crop and Disease Text Maps
 CROP_TRANSLATIONS = {
     "Apple": {"English": "Apple", "हिन्दी": "सेब", "मराठी": "सफरचंद"},
     "Corn (maize)": {"English": "Corn (Maize)", "हिन्दी": "मक्का", "मराठी": "मका"},
@@ -166,7 +180,7 @@ CROP_TRANSLATIONS = {
     "Potato": {"English": "Potato", "हिन्दी": "आलू", "मराठी": "बटाटा"},
     "Tomato": {"English": "Tomato", "हिन्दी": "टमाटर", "मराठी": "टोमॅटो"},
     "Strawberry": {"English": "Strawberry", "हिन्दी": "स्ट्रॉबेरी", "मराठी": "स्ट्रॉबेरी"},
-    "Peach": {"English": "Peach", "हिन्दी": "आड़ू (Peach)", "मराठी": "पीड (Peach)"},
+    "Peach": {"English": "Peach", "हिन्दी": "आड़ू", "मराठी": "पीड (Peach)"},
     "Cherry (including sour)": {"English": "Cherry", "हिन्दी": "चेरी", "मराठी": "चेरी"},
     "Blueberry": {"English": "Blueberry", "हिन्दी": "ब्लूबेरी", "मराठी": "ब्लूबेरी"},
     "Pepper, bell": {"English": "Bell Pepper", "हिन्दी": "शिमला मिर्च", "मराठी": "ढोबळी मिरची"},
@@ -177,24 +191,24 @@ CROP_TRANSLATIONS = {
 }
 
 DISEASE_TRANSLATIONS = {
-    "Apple scab": {"English": "Apple scab", "हिन्दी": "सेब का पपड़ी रोग (Scab)", "मराठी": "सफरचंदावरील खवले रोग (Scab)"},
+    "Apple scab": {"English": "Apple scab", "हिन्दी": "सेब का पपड़ी रोग", "मराठी": "सफरचंदावरील खवले रोग"},
     "Black rot": {"English": "Black rot", "हिन्दी": "ब्लैक रॉट (काला सड़न)", "मराठी": "काळा सडणे (Black Rot)"},
-    "Cedar apple rust": {"English": "Cedar apple rust", "हिन्दी": "देवदार सेब जंग रोग (Rust)", "मराठी": "तांबेरा रोग (Cedar Apple Rust)"},
-    "Cercospora leaf spot Gray leaf spot": {"English": "Cercospora / Gray leaf spot", "हिन्दी": "सार्कोस्पोरा पत्ती धब्बा रोग", "मराठी": "पर्णावरील करपा रोग (Leaf Spot)"},
-    "Common rust": {"English": "Common rust", "हिन्दी": "सामान्य जंग रोग (Rust)", "मराठी": "तांबेरा रोग (Common Rust)"},
-    "Northern Leaf Blight": {"English": "Northern Leaf Blight", "हिन्दी": "उत्तरी पत्ती झुलसा रोग", "मराठी": "उत्तरी पानावरील करपा (Leaf Blight)"},
+    "Cedar apple rust": {"English": "Cedar apple rust", "हिन्दी": "देवदार सेब जंग रोग", "मराठी": "तांबेरा रोग (Cedar Rust)"},
+    "Cercospora leaf spot Gray leaf spot": {"English": "Cercospora / Gray leaf spot", "हिन्दी": "सार्कोस्पोरा पत्ती धब्बा रोग", "मराठी": "पर्णावरील करपा रोग"},
+    "Common rust": {"English": "Common rust", "हिन्दी": "सामान्य जंग रोग", "मराठी": "तांबेरा रोग (Common Rust)"},
+    "Northern Leaf Blight": {"English": "Northern Leaf Blight", "हिन्दी": "उत्तरी पत्ती झुलसा रोग", "मराठी": "उत्तरी पानावरील करपा"},
     "Esca (Black Measles)": {"English": "Esca (Black Measles)", "हिन्दी": "एस्का (काला खसरा)", "मराठी": "एस्का रोग (Black Measles)"},
     "Leaf blight (Isariopsis Leaf Spot)": {"English": "Leaf blight", "हिन्दी": "पत्ती झुलसा रोग", "मराठी": "पानावरील करपा रोग"},
-    "Early blight": {"English": "Early blight", "हिन्दी": "अगेती झुलसा रोग (Early Blight)", "मराठी": "लवकर येणारा करपा रोग (Early Blight)"},
-    "Late blight": {"English": "Late blight", "हिन्दी": "पछेती झुलसा रोग (Late Blight)", "मराठी": "उशिरा येणारा करपा रोग (Late Blight)"},
-    "Bacterial spot": {"English": "Bacterial spot", "हिन्दी": "जीवाणु जनित धब्बा रोग (Bacterial Spot)", "मराठी": "जिवाणूजन्य ठिपके (Bacterial Spot)"},
+    "Early blight": {"English": "Early blight", "हिन्दी": "अगेती झुलसा रोग", "मराठी": "लवकर येणारा करपा रोग"},
+    "Late blight": {"English": "Late blight", "हिन्दी": "पछेती झुलसा रोग", "मराठी": "उशिरा येणारा करपा रोग"},
+    "Bacterial spot": {"English": "Bacterial spot", "हिन्दी": "जीवाणु जनित धब्बा रोग", "मराठी": "जिवाणूजन्य ठिपके"},
     "Leaf Mold": {"English": "Leaf Mold", "हिन्दी": "पत्ती मोल्ड रोग", "मराठी": "पानावरील बुरशी (Leaf Mold)"},
     "Septoria leaf spot": {"English": "Septoria leaf spot", "हिन्दी": "सेप्टोरिया पत्ती धब्बा रोग", "मराठी": "सेप्टोरिया पानावरील ठिपके"},
-    "Spider mites Two-spotted spider mite": {"English": "Two-spotted spider mite", "हिन्दी": "दो-धब्बों वाले मकड़ी के कीड़े", "मराठी": "दोन ठिपक्यांची कोळी कीड (Spider Mites)"},
+    "Spider mites Two-spotted spider mite": {"English": "Two-spotted spider mite", "हिन्दी": "दो-धब्बों वाले मकड़ी के कीड़े", "मराठी": "दोन ठिपक्यांची कोळी कीड"},
     "Target Spot": {"English": "Target Spot", "हिन्दी": "टार्गेट स्पॉट रोग", "मराठी": "टार्गेट स्पॉट रोग"},
     "Tomato Yellow Leaf Curl Virus": {"English": "Tomato Yellow Leaf Curl Virus", "हिन्दी": "टमाटर पीला पत्ती कुंचन वायरस", "मराठी": "टोमॅटो यलो लीफ कर्ल व्हायरस"},
     "Tomato mosaic virus": {"English": "Tomato mosaic virus", "हिन्दी": "टमाटर मोज़ेक वायरस", "मराठी": "टोमॅटो मोझॅक व्हायरस"},
-    "Leaf scorch": {"English": "Leaf scorch", "हिन्दी": "पत्ती का झुलसना (Leaf Scorch)", "मराठी": "पाने जळणे रोग (Leaf Scorch)"},
+    "Leaf scorch": {"English": "Leaf scorch", "हिन्दी": "पत्ती का झुलसना", "मराठी": "पाने जळणे रोग (Leaf Scorch)"},
     "Powdery mildew": {"English": "Powdery mildew", "हिन्दी": "पाउडरी मिल्ड्यू (चूर्णिल आसिता)", "मराठी": "भुरी रोग (Powdery Mildew)"},
     "Haunglongbing (Citrus greening)": {"English": "Citrus greening (HLB)", "हिन्दी": "सिट्रस ग्रीनिंग रोग", "मराठी": "सायट्रस ग्रीनिंग रोग"},
     "healthy": {"English": "Healthy", "हिन्दी": "स्वस्थ", "मराठी": "निरोगी"}
@@ -203,7 +217,7 @@ DISEASE_TRANSLATIONS = {
 treatments = {
     "Apple___Apple_scab": {
         "English": "Apply fungicides containing captan or myclobutanil. Remove and destroy infected leaves.",
-        "हिन्दी": "कैप्टान या माइक्लोबुटानिल युक्त कवकनाशी (fungicides) लगाएं। संक्रमित पत्तियों को हटाकर नष्ट कर दें।",
+        "हिन्दी": "कैप्टान या माइक्लोबुटानिल युक्त कवकनाशी लगाएं। संक्रमित पत्तियों को हटाकर नष्ट कर दें।",
         "मराठी": "कॅप्टन किंवा मायक्लोब्युटानिल असलेली बुरशीनाशके वापरा. संसर्ग झालेली पाने काढून नष्ट करा."
     },
     "Apple___Black_rot": {
@@ -248,7 +262,7 @@ treatments = {
     },
     "Grape___Esca_(Black_Measles)": {
         "English": "Prune infected wood. Apply wound sealant after pruning.",
-        "हिन्दी": "संक्रमित लकड़ी की छंटाई करें। छंटाई के बाद कटे हुए हिस्सों पर घाव भरने वाला लेप या बोर्डो पेस्ट लगाएं।",
+        "हिन्दी": "संक्रमित लकड़ी की छंटाई करें। छंटाई के बाद कटे हुए हिस्सों पर बोर्डो पेस्ट लगाएं।",
         "मराठी": "बाधित झालेली लाकडे छाटून टाका. छाटणी केल्यानंतर झाडाच्या जखमेवर बोर्डो पेस्ट किंवा सीलंट लावा."
     },
     "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": {
@@ -278,8 +292,8 @@ treatments = {
     },
     "Tomato___Bacterial_spot": {
         "English": "Apply copper-based bactericide. Avoid overhead irrigation.",
-        "हिन्दी": "तांबा आधारित जीवाणुनाशक (bactericide) लगाएं। पौधों के ऊपर से पानी देने (ओवरहेड सिंचाई) से बचें।",
-        "मराठी": "तांबे-आधारित जिवाणूनाशक वापरा. पानावरील तुषार सिंचन (Overhead irrigation) टाळा."
+        "हिन्दी": "तांबा आधारित जीवाणुनाशक लगाएं। पौधों के ऊपर से पानी देने (ओवरहेड सिंचाई) से बचें।",
+        "मराठी": "तांबे-आधारित जिवाणूनाशक वापरा. पानावरील तुषार सिंचन टाळा."
     },
     "Tomato___Early_blight": {
         "English": "Apply fungicide containing chlorothalonil. Remove lower infected leaves.",
@@ -289,11 +303,11 @@ treatments = {
     "Tomato___Late_blight": {
         "English": "Apply metalaxyl immediately. Remove and destroy infected plants.",
         "हिन्दी": "तुरंत मेटलैक्सिल कवकनाशी का छिड़काव करें। संक्रमित पौधों को खेतों से हटाकर नष्ट कर दें।",
-        "मराठी": "त्वरित मेटलॅक्सिल फवारा. संसर्ग झालेले झाड काढून नष्ट करा."
+        "मराठी": "त्वरित मेटलॅक्सिल फवारा. संसर्ग केलेले झाड काढून नष्ट करा."
     },
     "Tomato___Leaf_Mold": {
         "English": "Improve ventilation. Apply fungicide containing chlorothalonil.",
-        "हिन्दी": "खेत या ग्रीनहाउस में वेंटिलेशन (हवा का आना-जाना) सुधारें। क्लोरोथैलोनिल युक्त कवकनाशी लगाएं।",
+        "हिन्दी": "खेत या ग्रीनहाउस में वेंटिलेशन (हवा का आना-जाना) सुधारें। कवकनाशी लगाएं।",
         "मराठी": "हवेची हालचाल (व्हेंटिलेशन) सुधारा. क्लोरोथॅलोनिल असलेले बुरशीनाशक वापरा."
     },
     "Tomato___Septoria_leaf_spot": {
@@ -303,7 +317,7 @@ treatments = {
     },
     "Tomato___Spider_mites Two-spotted_spider_mite": {
         "English": "Apply miticide or neem oil. Increase humidity around plants.",
-        "हिन्दी": "माइटिसाइड (कीटनाशक) या नीम के तेल का प्रयोग करें। पौधों के आसपास नमी बढ़ाएं।",
+        "हिन्दी": "माइटिसाइड या नीम के तेल का प्रयोग करें। पौधों के आसपास नमी बढ़ाएं।",
         "मराठी": "मायटीसाइड किंवा कडुनिंबाचे तेल वापरा. झाडांच्या आजूबाजूला आर्द्रता वाढवा."
     },
     "Tomato___Target_Spot": {
@@ -313,13 +327,13 @@ treatments = {
     },
     "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
         "English": "Remove infected plants. Control whitefly population with insecticide.",
-        "हिन्दी": "संक्रमित पौधों को तुरंत उखाड़ें। कीटनाशक की मदद से सफेद मक्खी (Whitefly) की आबादी को नियंत्रित करें।",
-        "मराठी": "बाधित झाडे काढून टाका. कीटकनाशकाचा वापर करून पांढऱ्या माशीचे (Whitefly) नियंत्रण करा."
+        "हिन्दी": "संक्रमित पौधों को तुरंत उखाड़ें। कीटनाशक की मदद से सफेद मक्खी को नियंत्रित करें।",
+        "मराठी": "बाधित झाडे काढून टाका. कीटकनाशकाचा वापर करून पांढऱ्या माशीचे नियंत्रण करा."
     },
     "Tomato___Tomato_mosaic_virus": {
         "English": "Remove infected plants. Disinfect tools. Control aphids.",
-        "हिन्दी": "संक्रमित पौधों को नष्ट करें। कृषि उपकरणों को साफ और कीटाणुरहित करें। एफिड्स (कीटों) को नियंत्रित करें।",
-        "मराठी": "बाधित झाडे नष्ट करा. शेतीची अवजारे जंतूमुक्त करा. मावा (Aphids) कीड नियंत्रित करा."
+        "हिन्दी": "संक्रमित पौधों को नष्ट करें। कृषि उपकरणों को साफ और कीटाणुरहित करें।",
+        "मराठी": "बाधित झाडे नष्ट करा. शेतीची अवजारे जंतूमुक्त करा. मावा कीड नियंत्रित करा."
     },
     "Tomato___healthy": {
         "English": "No treatment needed. Continue regular care.",
@@ -348,7 +362,7 @@ treatments = {
     },
     "Cherry_(including_sour)___Powdery_mildew": {
         "English": "Apply sulfur-based fungicide. Ensure good air circulation.",
-        "हिन्दी": "सल्फर (गंधक) आधारित कवकनाशी लगाएं। हवा का अच्छा संचरण सुनिश्चित करें।",
+        "हिन्दी": "सल्फर आधारित कवकनाशी लगाएं। हवा का अच्छा संचरण सुनिश्चित करें।",
         "मराठी": "गंधक-आधारित बुरशीनाशक वापरा. हवा खेळती राहील याची खात्री करा."
     },
     "Cherry_(including_sour)___healthy": {
@@ -388,10 +402,21 @@ treatments = {
     },
     "Orange___Haunglongbing_(Citrus_greening)": {
         "English": "No cure available. Remove infected trees. Control psyllid insects.",
-        "हिन्दी": "कोई स्थायी इलाज उपलब्ध नहीं है। संक्रमित पेड़ों को हटा दें। सिलिड (psyllid) कीटों को नियंत्रित करें।",
+        "हिन्दी": "कोई स्थायी इलाज उपलब्ध नहीं है। संक्रमित पेड़ों को हटा दें। सिलिड कीटों को नियंत्रित करें।",
         "मराठी": "या रोगावर कोणताही खात्रीशीर इलाज नाही. संसर्ग झालेली झाडे काढून टाका आणि सिलीड कीटक नियंत्रित करा."
     },
 }
+
+def clean_digits(val_str, lang_choice):
+    if lang_choice == "English":
+        return val_str
+    
+    # Simple localization digit replacer rule
+    digit_map = {
+        '0': '०', '1': '१', '2': '२', '3': '३', '4': '४',
+        '5': '५', '6': '६', '7': '७', '8': '८', '9': '९'
+    }
+    return "".join(digit_map.get(char, char) for char in str(val_str))
 
 def get_treatment(cls, lang):
     return treatments.get(cls, {}).get(lang, I18N[lang]["fallback_advice"])
@@ -401,7 +426,6 @@ def get_translated_label(raw_pred, lang):
     raw_crop = parts[0].replace('_', ' ').strip()
     raw_disease = parts[1].replace('_', ' ').strip() if len(parts) > 1 else 'healthy'
     
-    # Map raw strings to translation dictionary keys safely
     clean_crop_key = "Corn (maize)" if "Corn" in raw_crop else ("Pepper, bell" if "Pepper" in raw_crop else ("Cherry (including sour)" if "Cherry" in raw_crop else raw_crop))
     
     crop_tr = CROP_TRANSLATIONS.get(clean_crop_key, {}).get(lang, raw_crop)
@@ -484,30 +508,30 @@ transform = transforms.Compose([
 
 model, class_names = load_model()
 
-# Header & Multi-Language Dropdown Selection Container
-col_title, col_lang = st.columns([3, 1])
+# Header Area layout with a container class to customize selector label
+col_title, col_lang = st.columns([2.8, 1.2])
 with col_lang:
-    st.markdown('<div class="lang-selector-container">', unsafe_allow_html=True)
+    st.markdown('<div class="lang-container">', unsafe_allow_html=True)
     lang = st.selectbox("🌐 Language / भाषा चुनें / भाषा निवडा", ["English", "हिन्दी", "मराठी"])
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Assign chosen translation object
+# Set dynamic configuration language variable
 tr = I18N[lang]
 
 st.markdown(f"""
 <div class="hero">
-    <div class="hero-badge">AI-Powered · ResNet-50 · PlantVillage</div>
-    <h1>Crop<span class="g">Guard</span> AI</h1>
+    <div class="hero-badge">{tr["badge_text"]}</div>
+    <h1>{tr["title_pre"]}<span class="g">{tr["title_post"]}</span></h1>
     <p>{tr["hero_sub"]}</p>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class="stat-grid">
-    <div class="stat-card"><div class="stat-number">99.57%</div><div class="stat-label">{tr["stat_acc"]}</div></div>
-    <div class="stat-card"><div class="stat-number">38</div><div class="stat-label">{tr["stat_cls"]}</div></div>
-    <div class="stat-card"><div class="stat-number">87K</div><div class="stat-label">{tr["stat_imgs"]}</div></div>
-    <div class="stat-card"><div class="stat-number">14</div><div class="stat-label">{tr["stat_crops"]}</div></div>
+    <div class="stat-card"><div class="stat-number">{tr["num_acc"]}</div><div class="stat-label">{tr["stat_acc"]}</div></div>
+    <div class="stat-card"><div class="stat-number">{tr["num_cls"]}</div><div class="stat-label">{tr["stat_cls"]}</div></div>
+    <div class="stat-card"><div class="stat-number">{tr["num_imgs"]}</div><div class="stat-label">{tr["stat_imgs"]}</div></div>
+    <div class="stat-card"><div class="stat-number">{tr["num_crops"]}</div><div class="stat-label">{tr["stat_crops"]}</div></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -533,7 +557,7 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     with right:
-        with st.spinner("🔍 Analysis..."):
+        with st.spinner("🔬 ..."):
             tensor = transform(image).unsqueeze(0)
 
             with torch.no_grad():
@@ -557,6 +581,8 @@ else:
 
             gradcam_img = generate_gradcam(model, tensor, pred_idx)
 
+        localized_conf = clean_digits(f"{conf:.1f}%", lang)
+
         if healthy:
             banner = (
                 '<div class="healthy-banner">'
@@ -577,7 +603,7 @@ else:
             f'<div class="metric-card"><div class="metric-label">{tr["crop_lbl"]}</div>'
             f'<div class="metric-value">{translated_crop}</div></div>'
             f'<div class="metric-card"><div class="metric-label">{tr["conf_lbl"]}</div>'
-            f'<div class="metric-value">{conf:.1f}%</div></div>'
+            f'<div class="metric-value">{localized_conf}</div></div>'
             '</div>'
         )
 
@@ -595,7 +621,8 @@ else:
             cls = class_names[top3.indices[i].item()]
             prob = top3.values[i].item() * 100
             lbl = get_translated_label(cls, lang)
-            top3_rows += f'<span class="pred-label">{lbl}: {prob:.1f}%</span>' + pbar(prob, 7)
+            localized_prob_str = clean_digits(f"{prob:.1f}%", lang)
+            top3_rows += f'<span class="pred-label">{lbl}: {localized_prob_str}</span>' + pbar(prob, 7)
 
         top3_block = (
             '<details style="margin-top:0.8rem;">'
@@ -626,15 +653,16 @@ else:
 
 st.markdown('<hr class="divider">', unsafe_allow_html=True)
 st.markdown(f'<div class="section-label">{tr["how_works"]}</div>', unsafe_allow_html=True)
+
 st.markdown(f"""
 <div class="steps-grid">
-    <div class="step-card"><div class="step-number">01</div><div class="step-title">{tr["step1_t"]}</div><div class="step-desc">{tr["step1_d"]}</div></div>
-    <div class="step-card"><div class="step-number">02</div><div class="step-title">{tr["step2_t"]}</div><div class="step-desc">{tr["step2_d"]}</div></div>
-    <div class="step-card"><div class="step-number">03</div><div class="step-title">{tr["step3_t"]}</div><div class="step-desc">{tr["step3_d"]}</div></div>
+    <div class="step-card"><div class="step-number">{tr["step1_num"]}</div><div class="step-title">{tr["step1_t"]}</div><div class="step-desc">{tr["step1_d"]}</div></div>
+    <div class="step-card"><div class="step-number">{tr["step2_num"]}</div><div class="step-title">{tr["step2_t"]}</div><div class="step-desc">{tr["step2_d"]}</div></div>
+    <div class="step-card"><div class="step-number">{tr["step3_num"]}</div><div class="step-title">{tr["step3_t"]}</div><div class="step-desc">{tr["step3_d"]}</div></div>
 </div>
 """, unsafe_allow_html=True)
 
-# Supported Crops Pill Labels Map
+# Supported Crops Map Elements
 pill_crops = [
     ("🍎", "Apple"), ("🌽", "Corn (maize)"), ("🍇", "Grape"), ("🥔", "Potato"), ("🍅", "Tomato"),
     ("🍑", "Peach"), ("🍒", "Cherry (including sour)"), ("🫐", "Blueberry"), ("🌶️", "Pepper, bell"),
