@@ -100,8 +100,9 @@ section[data-testid="stSidebar"] {{ display: none; }}
 .gradcam-note {{ font-size: 0.72rem; color: #2a4a20; font-weight: 600; margin-top: 0.5rem; text-align: center; font-style: italic; }}
 .footer {{ text-align: center; color: #1e3a18; padding: 1.2rem; font-size: 0.72rem; line-height: 1.9; border-top: 1px solid rgba(80,140,100,0.18); margin-top: 1rem; font-weight: 500; }}
 
-/* Olive Green Styling for Language Dropdown Label */
-.lang-container div[data-testid="stWidgetLabel"] p {{
+/* Precision targeting for the language dropdown title element */
+div[data-testid="stSelectbox"] label, 
+div[data-testid="stSelectbox"] label p {{
     color: #2e7d52 !important;
     font-weight: 700 !important;
 }}
@@ -131,8 +132,8 @@ I18N = {
         "fallback_advice": "Consult your local Krishi Vigyan Kendra for specific treatment advice."
     },
     "हिन्दी": {
-        "title_pre": "क्रॉप", "title_post": "गार्ड AI",
-        "badge_text": "एआई-संचालित · ResNet-50 · प्लांटविलेज",
+        "title_pre": "क्रॉप", "title_post": "गार्ड एआई",
+        "badge_text": "एआई-संचालित · रेज़नेट-५० · प्लांटविलेज",
         "hero_sub": "भारतीय किसानों के लिए तत्काल फसल रोग की पहचान - फोटो लें, अपलोड करें, सुरक्षित करें।",
         "num_acc": "९९.५७%", "num_cls": "३८", "num_imgs": "८७ हजार", "num_crops": "१४",
         "stat_acc": "सटीकता", "stat_cls": "रोग श्रेणियां", "stat_imgs": "प्रशिक्षण छवियां", "stat_crops": "फसलों के प्रकार",
@@ -144,15 +145,15 @@ I18N = {
         "gradcam_desc": "🔴 लाल/गर्म क्षेत्र = पत्ती के वे हिस्से जिन पर एआई ने सटीक भविष्यवाणी करने के लिए सबसे अधिक ध्यान केंद्रित किया।",
         "how_works": "यह कैसे काम करता है", "supported_crops": "समर्थित फसलें",
         "step1_num": "०१", "step1_t": "📸 साफ फोटो लें", "step1_d": "अच्छी प्राकृतिक रोशनी में एक पत्ती की पास से तस्वीर लें। धुंधली या अंधेरी छवियों से बचें।",
-        "step2_num": "०२", "step2_t": "⬆️ फोटो अपलोड करें", "step2_d": "अपनी JPG या PNG फाइल ऊपर अपलोड करें। हमारा ResNet-50 मॉडल तुरंत प्रोसेस करेगा।",
+        "step2_num": "०२", "step2_t": "⬆️ फोटो अपलोड करें", "step2_d": "अपनी JPG या PNG फाइल ऊपर अपलोड करें। हमारा रेज़नेट-५० मॉडल तुरंत प्रोसेस करेगा।",
         "step3_num": "०३", "step3_t": "💊 उपचार सलाह प्राप्त करें", "step3_d": "सटीकता स्कोर और व्यावहारिक उपचार चरणों के साथ तत्काल निदान प्राप्त करें।",
         "healthy_sub": "कोई बीमारी नहीं मिली। अपनी फसलों की अच्छी देखभाल जारी रखें!", "healthy_title": "स्वस्थ है",
-        "footer_text": "ResNet-50 + PyTorch के साथ ❤️ से निर्मित · प्लांटविलेज डेटासेट (87K इमेज) पर प्रशिक्षित<br>भारतीय किसानों के लिए 🇮🇳 · किसान कॉल सेंटर: 1800-180-1551 (निःशुल्क, 24/7)",
+        "footer_text": "रेज़नेट-५० + PyTorch के साथ ❤️ से निर्मित · प्लांटविलेज डेटासेट (८७ हजार इमेज) पर प्रशिक्षित<br>भारतीय किसानों के लिए 🇮🇳 · किसान कॉल सेंटर: १८००-१८०-१५५१ (निःशुल्क, २४/७)",
         "fallback_advice": "विशिष्ट उपचार सलाह के लिए अपने स्थानीय कृषि विज्ञान केंद्र से संपर्क करें।"
     },
     "मराठी": {
         "title_pre": "क्रॉप", "title_post": "गार्ड एआई",
-        "badge_text": "एआय-चालित · ResNet-50 · प्लांटव्हिलेज",
+        "badge_text": "एआय-चालित · रेझनेट-५० · प्लांटव्हिलेज",
         "hero_sub": "भारतीय शेतकऱ्यांसाठी त्वरित पीक रोग शोधक यंत्रणा — फोटो काढा, अपलोड करा, संरक्षण करा.",
         "num_acc": "९९.५७%", "num_cls": "३८", "num_imgs": "८७ हजार", "num_crops": "१४",
         "stat_acc": "अचूकता", "stat_cls": "रोगांचे प्रकार", "stat_imgs": "एकूण चित्रे", "stat_crops": "पिकांचे प्रकार",
@@ -164,10 +165,10 @@ I18N = {
         "gradcam_desc": "🔴 लाल/उबदार भाग = पानाचे ते भाग ज्यावर AI ने अंदाज लावण्यासाठी सर्वात जास्त लक्ष केंद्रित केले.",
         "how_works": "हे कसे कार्य करते", "supported_crops": "समर्थित पिके",
         "step1_num": "०१", "step1_t": "📸 स्पष्ट फोटो काढा", "step1_d": "चांगल्या नैसर्गिक प्रकाशात एकाच पानाचा जवळून फोटो घ्या. अस्पष्ट किंवा गडद फोटो टाळा.",
-        "step2_num": "०२", "step2_t": "⬆️ इमेज अपलोड करा", "step2_d": "तुमचा JPG किंवा PNG फोटो वर अपलोड करा. आमचे ResNet-50 मॉडेल त्वरित प्रक्रिया करेल.",
+        "step2_num": "०२", "step2_t": "⬆️ इमेज अपलोड करा", "step2_d": "तुमचा JPG किंवा PNG फोटो वर अपलोड करा. आमचे रेझनेट-५० मॉडेल त्वरित प्रक्रिया करेल.",
         "step3_num": "०३", "step3_t": "💊 उपचाराचा सल्ला मिळवा", "step3_d": "अचूकता टक्केवारी आणि आवश्यक उपचारांच्या चरणांसह त्वरित निदान मिळवा.",
         "healthy_sub": "कोणताही रोग आढळला नाही. पिकाची अशीच उत्तम काळजी घेत राहा!", "healthy_title": "निरोगी आहे",
-        "footer_text": "ResNet-50 + PyTorch वापरून ❤️ ने बनवलेले · प्लांटविलेज डेटासेटवर (87K चित्रे) प्रशिक्षित<br>भारतातील शेतकऱ्यांसाठी 🇮🇳 · किसान कॉल सेंटर: 1800-180-1551 (मोफत, २४/७)",
+        "footer_text": "रेझनेट-५० + PyTorch वापरून ❤️ ने बनवलेले · प्लांटविलेज डेटासेटवर (८७ हजार चित्रे) प्रशिक्षित<br>भारतातील शेतकऱ्यांसाठी 🇮🇳 · किसान कॉल सेंटर: १८००-१८०-१५५१ (मोफत, २४/७)",
         "fallback_advice": "विशिष्ट उपचारांच्या सल्ल्यासाठी तुमच्या स्थानिक कृषी विज्ञान केंद्राशी संपर्क साधा।"
     }
 }
@@ -411,7 +412,6 @@ def clean_digits(val_str, lang_choice):
     if lang_choice == "English":
         return val_str
     
-    # Simple localization digit replacer rule
     digit_map = {
         '0': '०', '1': '१', '2': '२', '3': '३', '4': '४',
         '5': '५', '6': '६', '7': '७', '8': '८', '9': '९'
@@ -508,14 +508,12 @@ transform = transforms.Compose([
 
 model, class_names = load_model()
 
-# Header Area layout with a container class to customize selector label
+# Setup row columns
 col_title, col_lang = st.columns([2.8, 1.2])
 with col_lang:
-    st.markdown('<div class="lang-container">', unsafe_allow_html=True)
     lang = st.selectbox("🌐 Language / भाषा चुनें / भाषा निवडा", ["English", "हिन्दी", "मराठी"])
-    st.markdown('</div>', unsafe_allow_html=True)
 
-# Set dynamic configuration language variable
+# Set dynamic configurations context key
 tr = I18N[lang]
 
 st.markdown(f"""
@@ -662,7 +660,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Supported Crops Map Elements
+# Supported Crops Elements
 pill_crops = [
     ("🍎", "Apple"), ("🌽", "Corn (maize)"), ("🍇", "Grape"), ("🥔", "Potato"), ("🍅", "Tomato"),
     ("🍑", "Peach"), ("🍒", "Cherry (including sour)"), ("🫐", "Blueberry"), ("🌶️", "Pepper, bell"),
