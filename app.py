@@ -12,8 +12,11 @@ import cv2
 st.set_page_config(page_title="CropGuard AI", page_icon="🌿", layout="wide")
 
 def get_base64_image(image_path):
-    with open(image_path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+    try:
+        with open(image_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        return ""
 
 bg = get_base64_image("bg.jpg")
 
@@ -45,7 +48,7 @@ section[data-testid="stSidebar"] {{ display: none; }}
 }}
 [data-testid="stFileUploaderDropzoneInstructions"],
 [data-testid="stFileUploader"] > div > div:nth-child(2) {{ display: none !important; }}
-.hero {{ text-align: center; padding: 1.8rem 0 0.8rem; }}
+.hero {{ text-align: center; padding: 1rem 0 0.8rem; }}
 .hero-badge {{
     display: inline-block; background: rgba(80,140,100,0.12);
     border: 1px solid rgba(80,140,100,0.30); color: #3a7a52;
@@ -96,52 +99,318 @@ section[data-testid="stSidebar"] {{ display: none; }}
 .section-label {{ font-size: 0.65rem; font-weight: 700; color: #1e3a18; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.6rem; }}
 .gradcam-note {{ font-size: 0.72rem; color: #2a4a20; font-weight: 600; margin-top: 0.5rem; text-align: center; font-style: italic; }}
 .footer {{ text-align: center; color: #1e3a18; padding: 1.2rem; font-size: 0.72rem; line-height: 1.9; border-top: 1px solid rgba(80,140,100,0.18); margin-top: 1rem; font-weight: 500; }}
+.lang-selector-container {{ background: rgba(185,225,195,0.85); padding: 0.5rem 1rem; border-radius: 10px; border: 1px solid rgba(60,120,80,0.3); margin-bottom: 1rem; }}
 </style>
 """, unsafe_allow_html=True)
 
-treatments = {
-    "Apple___Apple_scab": "Apply fungicides containing captan or myclobutanil. Remove and destroy infected leaves.",
-    "Apple___Black_rot": "Prune infected branches. Apply copper-based fungicide every 7-10 days.",
-    "Apple___Cedar_apple_rust": "Apply fungicide at pink stage. Remove nearby cedar trees if possible.",
-    "Apple___healthy": "No treatment needed. Continue regular care.",
-    "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": "Apply strobilurin fungicides. Rotate crops annually.",
-    "Corn_(maize)___Common_rust_": "Apply fungicides early. Use resistant varieties next season.",
-    "Corn_(maize)___Northern_Leaf_Blight": "Apply fungicide at first sign. Ensure good air circulation.",
-    "Corn_(maize)___healthy": "No treatment needed. Continue regular care.",
-    "Grape___Black_rot": "Apply mancozeb or myclobutanil. Remove mummified berries.",
-    "Grape___Esca_(Black_Measles)": "Prune infected wood. Apply wound sealant after pruning.",
-    "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": "Apply copper fungicide. Improve vineyard air circulation.",
-    "Grape___healthy": "No treatment needed. Continue regular care.",
-    "Potato___Early_blight": "Apply chlorothalonil or mancozeb. Remove infected leaves immediately.",
-    "Potato___Late_blight": "Apply metalaxyl fungicide urgently. Destroy infected plants.",
-    "Potato___healthy": "No treatment needed. Continue regular care.",
-    "Tomato___Bacterial_spot": "Apply copper-based bactericide. Avoid overhead irrigation.",
-    "Tomato___Early_blight": "Apply fungicide containing chlorothalonil. Remove lower infected leaves.",
-    "Tomato___Late_blight": "Apply metalaxyl immediately. Remove and destroy infected plants.",
-    "Tomato___Leaf_Mold": "Improve ventilation. Apply fungicide containing chlorothalonil.",
-    "Tomato___Septoria_leaf_spot": "Apply mancozeb or chlorothalonil. Remove infected leaves.",
-    "Tomato___Spider_mites Two-spotted_spider_mite": "Apply miticide or neem oil. Increase humidity around plants.",
-    "Tomato___Target_Spot": "Apply fungicide. Ensure proper plant spacing for airflow.",
-    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": "Remove infected plants. Control whitefly population with insecticide.",
-    "Tomato___Tomato_mosaic_virus": "Remove infected plants. Disinfect tools. Control aphids.",
-    "Tomato___healthy": "No treatment needed. Continue regular care.",
-    "Strawberry___Leaf_scorch": "Remove infected leaves. Apply fungicide containing captan. Avoid overhead watering.",
-    "Strawberry___healthy": "No treatment needed. Continue regular care.",
-    "Peach___Bacterial_spot": "Apply copper-based bactericide in early spring. Prune infected branches.",
-    "Peach___healthy": "No treatment needed. Continue regular care.",
-    "Cherry_(including_sour)___Powdery_mildew": "Apply sulfur-based fungicide. Ensure good air circulation.",
-    "Cherry_(including_sour)___healthy": "No treatment needed. Continue regular care.",
-    "Blueberry___healthy": "No treatment needed. Continue regular care.",
-    "Pepper,_bell___Bacterial_spot": "Apply copper bactericide. Avoid overhead irrigation.",
-    "Pepper,_bell___healthy": "No treatment needed. Continue regular care.",
-    "Soybean___healthy": "No treatment needed. Continue regular care.",
-    "Squash___Powdery_mildew": "Apply potassium bicarbonate or neem oil. Improve air circulation.",
-    "Raspberry___healthy": "No treatment needed. Continue regular care.",
-    "Orange___Haunglongbing_(Citrus_greening)": "No cure available. Remove infected trees. Control psyllid insects.",
+# Language Dictionary
+I18N = {
+    "English": {
+        "hero_sub": "Instant crop disease detection for Indian farmers — snap, upload, protect.",
+        "stat_acc": "Accuracy", "stat_cls": "Disease Classes", "stat_imgs": "Training Images", "stat_crops": "Crop Types",
+        "uploader_lbl": "📂 Upload a clear leaf photo (JPG or PNG)",
+        "placeholder": "Upload a leaf photo above — your preview and analysis will appear here.",
+        "preview_title": "📸 Leaf Preview", "analysis_title": "🔬 Analysis Results",
+        "crop_lbl": "🌱 Crop", "conf_lbl": "🎯 Confidence", "treatment_lbl": "💊 Treatment Advice",
+        "top3_lbl": "📊 Top 3 Predictions", "gradcam_title": "🔥 Grad-CAM — Where the AI Looked",
+        "gradcam_desc": "🔴 Red/warm areas = parts of the leaf the AI focused on most to make its prediction.",
+        "how_works": "How it works", "supported_crops": "Supported Crops",
+        "step1_t": "📸 Take a clear photo", "step1_d": "Close-up of a single leaf in good natural lighting. Avoid blurry or dark images.",
+        "step2_t": "⬆️ Upload the image", "step2_d": "Upload your JPG or PNG above. Our ResNet-50 model processes it instantly.",
+        "step3_t": "💊 Get treatment advice", "step3_d": "Receive instant diagnosis with confidence score and actionable treatment steps.",
+        "healthy_sub": "No disease detected. Keep up the good care!", "healthy_title": "Healthy",
+        "footer_text": "Built with ❤️ using ResNet-50 + PyTorch · Trained on PlantVillage Dataset (87K images)<br>For farmers across India 🇮🇳 · Kisan Call Centre: 1800-180-1551 (Free, 24/7)",
+        "fallback_advice": "Consult your local Krishi Vigyan Kendra for specific treatment advice."
+    },
+    "हिन्दी": {
+        "hero_sub": "भारतीय किसानों के लिए तत्काल फसल रोग की पहचान - फोटो लें, अपलोड करें, सुरक्षित करें।",
+        "stat_acc": "सटीकता", "stat_cls": "रोग श्रेणियां", "stat_imgs": "प्रशिक्षण छवियां", "stat_crops": "फसलों के प्रकार",
+        "uploader_lbl": "📂 पत्ती की एक साफ फोटो अपलोड करें (JPG या PNG)",
+        "placeholder": "ऊपर पत्ती की फोटो अपलोड करें — आपका पूर्वावलोकन और विश्लेषण यहां दिखाई देगा।",
+        "preview_title": "📸 पत्ती का पूर्वावलोकन", "analysis_title": "🔬 विश्लेषण के परिणाम",
+        "crop_lbl": "🌱 फसल", "conf_lbl": "🎯 विश्वास स्कोर", "treatment_lbl": "💊 उपचार सलाह",
+        "top3_lbl": "📊 शीर्ष 3 संभावित अनुमान", "gradcam_title": "🔥 Grad-CAM — एआई ने कहां देखा",
+        "gradcam_desc": "🔴 लाल/गर्म क्षेत्र = पत्ती के वे हिस्से जिन पर एआई ने सटीक भविष्यवाणी करने के लिए सबसे अधिक ध्यान केंद्रित किया।",
+        "how_works": "यह कैसे काम करता है", "supported_crops": "समर्थित फसलें",
+        "step1_t": "📸 साफ फोटो लें", "step1_d": "अच्छी प्राकृतिक रोशनी में एक पत्ती की पास से तस्वीर लें। धुंधली या अंधेरी छवियों से बचें।",
+        "step2_t": "⬆️ फोटो अपलोड करें", "step2_d": "अपनी JPG या PNG फाइल ऊपर अपलोड करें। हमारा ResNet-50 मॉडल तुरंत प्रोसेस करेगा।",
+        "step3_t": "💊 उपचार सलाह प्राप्त करें", "step3_d": "सटीकता स्कोर और व्यावहारिक उपचार चरणों के साथ तत्काल निदान प्राप्त करें।",
+        "healthy_sub": "कोई बीमारी नहीं मिली। अपनी फसलों की अच्छी देखभाल जारी रखें!", "healthy_title": "स्वस्थ है",
+        "footer_text": "ResNet-50 + PyTorch के साथ ❤️ से निर्मित · प्लांटविलेज डेटासेट (87K इमेज) पर प्रशिक्षित<br>भारतीय किसानों के लिए 🇮🇳 · किसान कॉल सेंटर: 1800-180-1551 (निःशुल्क, 24/7)",
+        "fallback_advice": "विशिष्ट उपचार सलाह के लिए अपने स्थानीय कृषि विज्ञान केंद्र से संपर्क करें।"
+    },
+    "मराठी": {
+        "hero_sub": "भारतीय शेतकऱ्यांसाठी त्वरित पीक रोग शोधक यंत्रणा — फोटो काढा, अपलोड करा, संरक्षण करा.",
+        "stat_acc": "अचूकता", "stat_cls": "रोगांचे प्रकार", "stat_imgs": "एकूण चित्रे", "stat_crops": "पिकांचे प्रकार",
+        "uploader_lbl": "📂 पानाचा स्पष्ट फोटो अपलोड करा (JPG किंवा PNG)",
+        "placeholder": "वर पानाचा फोटो अपलोड करा — तुमचा प्रिव्ह्यू आणि विश्लेषण येथे दिसेल.",
+        "preview_title": "📸 पानाचा प्रिव्ह्यू", "analysis_title": "🔬 विश्लेषणाचा निकाल",
+        "crop_lbl": "🌱 पीक", "conf_lbl": "🎯 आत्मविश्वास", "treatment_lbl": "💊 उपचाराचा सल्ला",
+        "top3_lbl": "📊 टॉप ३ संभाव्य अंदाज", "gradcam_title": "🔥 Grad-CAM — एआय (AI) ने कुठे पाहिले",
+        "gradcam_desc": "🔴 लाल/उबदार भाग = पानाचे ते भाग ज्यावर AI ने अंदाज लावण्यासाठी सर्वात जास्त लक्ष केंद्रित केले.",
+        "how_works": "हे कसे कार्य करते", "supported_crops": "समर्थित पिके",
+        "step1_t": "📸 स्पष्ट फोटो काढा", "step1_d": "चांगल्या नैसर्गिक प्रकाशात एकाच पानाचा जवळून फोटो घ्या. अस्पष्ट किंवा गडद फोटो टाळा.",
+        "step2_t": "⬆️ इमेज अपलोड करा", "step2_d": "तुमचा JPG किंवा PNG फोटो वर अपलोड करा. आमचे ResNet-50 मॉडेल त्वरित प्रक्रिया करेल.",
+        "step3_t": "💊 उपचाराचा सल्ला मिळवा", "step3_d": "अचूकता टक्केवारी आणि आवश्यक उपचारांच्या चरणांसह त्वरित निदान मिळवा.",
+        "healthy_sub": "कोणताही रोग आढळला नाही. पिकाची अशीच उत्तम काळजी घेत राहा!", "healthy_title": "निरोगी आहे",
+        "footer_text": "ResNet-50 + PyTorch वापरून ❤️ ने बनवलेले · प्लांटविलेज डेटासेटवर (87K चित्रे) प्रशिक्षित<br>भारतातील शेतकऱ्यांसाठी 🇮🇳 · किसान कॉल सेंटर: 1800-180-1551 (मोफत, २४/७)",
+        "fallback_advice": "विशिष्ट उपचारांच्या सल्ल्यासाठी तुमच्या स्थानिक कृषी विज्ञान केंद्राशी संपर्क साधा।"
+    }
 }
 
-def get_treatment(cls):
-    return treatments.get(cls, "Consult your local Krishi Vigyan Kendra for specific treatment advice.")
+# Crop and Disease translations
+CROP_TRANSLATIONS = {
+    "Apple": {"English": "Apple", "हिन्दी": "सेब", "मराठी": "सफरचंद"},
+    "Corn (maize)": {"English": "Corn (Maize)", "हिन्दी": "मक्का", "मराठी": "मका"},
+    "Grape": {"English": "Grape", "हिन्दी": "अंगूर", "मराठी": "द्राक्षे"},
+    "Potato": {"English": "Potato", "हिन्दी": "आलू", "मराठी": "बटाटा"},
+    "Tomato": {"English": "Tomato", "हिन्दी": "टमाटर", "मराठी": "टोमॅटो"},
+    "Strawberry": {"English": "Strawberry", "हिन्दी": "स्ट्रॉबेरी", "मराठी": "स्ट्रॉबेरी"},
+    "Peach": {"English": "Peach", "हिन्दी": "आड़ू (Peach)", "मराठी": "पीड (Peach)"},
+    "Cherry (including sour)": {"English": "Cherry", "हिन्दी": "चेरी", "मराठी": "चेरी"},
+    "Blueberry": {"English": "Blueberry", "हिन्दी": "ब्लूबेरी", "मराठी": "ब्लूबेरी"},
+    "Pepper, bell": {"English": "Bell Pepper", "हिन्दी": "शिमला मिर्च", "मराठी": "ढोबळी मिरची"},
+    "Soybean": {"English": "Soybean", "हिन्दी": "सोयाबीन", "मराठी": "सोयाबीन"},
+    "Squash": {"English": "Squash", "हिन्दी": "स्कॉश (कद्दू वर्ग)", "मराठी": "स्क्वॅश"},
+    "Orange": {"English": "Orange", "हिन्दी": "संतरा", "मराठी": "संत्री"},
+    "Raspberry": {"English": "Raspberry", "हिन्दी": "रस्पबेरी", "मराठी": "रास्पबेरी"}
+}
+
+DISEASE_TRANSLATIONS = {
+    "Apple scab": {"English": "Apple scab", "हिन्दी": "सेब का पपड़ी रोग (Scab)", "मराठी": "सफरचंदावरील खवले रोग (Scab)"},
+    "Black rot": {"English": "Black rot", "हिन्दी": "ब्लैक रॉट (काला सड़न)", "मराठी": "काळा सडणे (Black Rot)"},
+    "Cedar apple rust": {"English": "Cedar apple rust", "हिन्दी": "देवदार सेब जंग रोग (Rust)", "मराठी": "तांबेरा रोग (Cedar Apple Rust)"},
+    "Cercospora leaf spot Gray leaf spot": {"English": "Cercospora / Gray leaf spot", "हिन्दी": "सार्कोस्पोरा पत्ती धब्बा रोग", "मराठी": "पर्णावरील करपा रोग (Leaf Spot)"},
+    "Common rust": {"English": "Common rust", "हिन्दी": "सामान्य जंग रोग (Rust)", "मराठी": "तांबेरा रोग (Common Rust)"},
+    "Northern Leaf Blight": {"English": "Northern Leaf Blight", "हिन्दी": "उत्तरी पत्ती झुलसा रोग", "मराठी": "उत्तरी पानावरील करपा (Leaf Blight)"},
+    "Esca (Black Measles)": {"English": "Esca (Black Measles)", "हिन्दी": "एस्का (काला खसरा)", "मराठी": "एस्का रोग (Black Measles)"},
+    "Leaf blight (Isariopsis Leaf Spot)": {"English": "Leaf blight", "हिन्दी": "पत्ती झुलसा रोग", "मराठी": "पानावरील करपा रोग"},
+    "Early blight": {"English": "Early blight", "हिन्दी": "अगेती झुलसा रोग (Early Blight)", "मराठी": "लवकर येणारा करपा रोग (Early Blight)"},
+    "Late blight": {"English": "Late blight", "हिन्दी": "पछेती झुलसा रोग (Late Blight)", "मराठी": "उशिरा येणारा करपा रोग (Late Blight)"},
+    "Bacterial spot": {"English": "Bacterial spot", "हिन्दी": "जीवाणु जनित धब्बा रोग (Bacterial Spot)", "मराठी": "जिवाणूजन्य ठिपके (Bacterial Spot)"},
+    "Leaf Mold": {"English": "Leaf Mold", "हिन्दी": "पत्ती मोल्ड रोग", "मराठी": "पानावरील बुरशी (Leaf Mold)"},
+    "Septoria leaf spot": {"English": "Septoria leaf spot", "हिन्दी": "सेप्टोरिया पत्ती धब्बा रोग", "मराठी": "सेप्टोरिया पानावरील ठिपके"},
+    "Spider mites Two-spotted spider mite": {"English": "Two-spotted spider mite", "हिन्दी": "दो-धब्बों वाले मकड़ी के कीड़े", "मराठी": "दोन ठिपक्यांची कोळी कीड (Spider Mites)"},
+    "Target Spot": {"English": "Target Spot", "हिन्दी": "टार्गेट स्पॉट रोग", "मराठी": "टार्गेट स्पॉट रोग"},
+    "Tomato Yellow Leaf Curl Virus": {"English": "Tomato Yellow Leaf Curl Virus", "हिन्दी": "टमाटर पीला पत्ती कुंचन वायरस", "मराठी": "टोमॅटो यलो लीफ कर्ल व्हायरस"},
+    "Tomato mosaic virus": {"English": "Tomato mosaic virus", "हिन्दी": "टमाटर मोज़ेक वायरस", "मराठी": "टोमॅटो मोझॅक व्हायरस"},
+    "Leaf scorch": {"English": "Leaf scorch", "हिन्दी": "पत्ती का झुलसना (Leaf Scorch)", "मराठी": "पाने जळणे रोग (Leaf Scorch)"},
+    "Powdery mildew": {"English": "Powdery mildew", "हिन्दी": "पाउडरी मिल्ड्यू (चूर्णिल आसिता)", "मराठी": "भुरी रोग (Powdery Mildew)"},
+    "Haunglongbing (Citrus greening)": {"English": "Citrus greening (HLB)", "हिन्दी": "सिट्रस ग्रीनिंग रोग", "मराठी": "सायट्रस ग्रीनिंग रोग"},
+    "healthy": {"English": "Healthy", "हिन्दी": "स्वस्थ", "मराठी": "निरोगी"}
+}
+
+treatments = {
+    "Apple___Apple_scab": {
+        "English": "Apply fungicides containing captan or myclobutanil. Remove and destroy infected leaves.",
+        "हिन्दी": "कैप्टान या माइक्लोबुटानिल युक्त कवकनाशी (fungicides) लगाएं। संक्रमित पत्तियों को हटाकर नष्ट कर दें।",
+        "मराठी": "कॅप्टन किंवा मायक्लोब्युटानिल असलेली बुरशीनाशके वापरा. संसर्ग झालेली पाने काढून नष्ट करा."
+    },
+    "Apple___Black_rot": {
+        "English": "Prune infected branches. Apply copper-based fungicide every 7-10 days.",
+        "हिन्दी": "संक्रमित शाखाओं की छंटाई करें। हर 7-10 दिनों में तांबा आधारित कवकनाशी लगाएं।",
+        "मराठी": "संसर्ग झालेल्या फांद्या छाटा. दर ७-१० दिवसांनी तांबे-आधारित बुरशीनाशक फवारा."
+    },
+    "Apple___Cedar_apple_rust": {
+        "English": "Apply fungicide at pink stage. Remove nearby cedar trees if possible.",
+        "हिन्दी": "गुलाबी कली की अवस्था में कवकनाशी लगाएं। यदि संभव हो तो पास के देवदार (cedar) के पेड़ों को हटा दें।",
+        "मराठी": "गुलाबी कळीच्या अवस्थेत बुरशीनाशक वापरा. शक्य असल्यास जवळची सिडारची झाडे काढून टाका."
+    },
+    "Apple___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": {
+        "English": "Apply strobilurin fungicides. Rotate crops annually.",
+        "हिन्दी": "स्ट्रोबिल्यूरिन कवकनाशी लगाएं। प्रतिवर्ष फसलों का चक्रण (crop rotation) करें।",
+        "मराठी": "स्ट्रोबिल्युरिन बुरशीनाशके वापरा. दरवर्षी पिकांची फेरपालट करा."
+    },
+    "Corn_(maize)___Common_rust_": {
+        "English": "Apply fungicides early. Use resistant varieties next season.",
+        "हिन्दी": "शुरुआत में ही कवकनाशी लगाएं। अगले सीजन में रोग-प्रतिरोधी किस्मों के बीजों का उपयोग करें।",
+        "मराठी": "सुरुवातीच्या काळातच बुरशीनाशके फवारा. पुढील हंगामात रोगप्रतिकारक जातींचे बियाणे वापरा."
+    },
+    "Corn_(maize)___Northern_Leaf_Blight": {
+        "English": "Apply fungicide at first sign. Ensure good air circulation.",
+        "हिन्दी": "पहला लक्षण दिखते ही कवकनाशी लगाएं। खेतों में हवा का अच्छा संचार सुनिश्चित करें।",
+        "मराठी": "पहिले लक्षण दिसताच बुरशीनाशक वापरा. शेतात हवा खेळती राहील याची काळजी घ्या."
+    },
+    "Corn_(maize)___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Grape___Black_rot": {
+        "English": "Apply mancozeb or myclobutanil. Remove mummified berries.",
+        "हिन्दी": "मैनकोजेब या माइक्लोबुटानिल लगाएं। सूखे और सड़े हुए अंगूरों को बेल से हटा दें।",
+        "मराठी": "मॅन्कोझेब किंवा मायक्लोब्युटानिल फवारा. सुकलेली आणि सडलेली द्राक्षे वेलीवरून काढून टाका."
+    },
+    "Grape___Esca_(Black_Measles)": {
+        "English": "Prune infected wood. Apply wound sealant after pruning.",
+        "हिन्दी": "संक्रमित लकड़ी की छंटाई करें। छंटाई के बाद कटे हुए हिस्सों पर घाव भरने वाला लेप या बोर्डो पेस्ट लगाएं।",
+        "मराठी": "बाधित झालेली लाकडे छाटून टाका. छाटणी केल्यानंतर झाडाच्या जखमेवर बोर्डो पेस्ट किंवा सीलंट लावा."
+    },
+    "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": {
+        "English": "Apply copper fungicide. Improve vineyard air circulation.",
+        "हिन्दी": "कॉपर (तांबा) कवकनाशी लगाएं। अंगूर के बाग में हवा का प्रवाह बेहतर करें।",
+        "मराठी": "तांबे-युक्त बुरशीनाशक लावा. द्राक्षाच्या बागेत हवा खेळती राहू द्या."
+    },
+    "Grape___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Potato___Early_blight": {
+        "English": "Apply chlorothalonil or mancozeb. Remove infected leaves immediately.",
+        "हिन्दी": "क्लोरोथैलोनिल या मैनकोजेब का छिड़काव करें। संक्रमित पत्तियों को तुरंत हटा दें।",
+        "मराठी": "क्लोरोथॅलोनिल किंवा मॅन्कोझेब फवारा. संसर्ग झालेली पाने त्वरित काढून टाका."
+    },
+    "Potato___Late_blight": {
+        "English": "Apply metalaxyl fungicide urgently. Destroy infected plants.",
+        "हिन्दी": "तुरंत मेटलैक्सिल कवकनाशी का प्रयोग करें। अत्यधिक संक्रमित पौधों को उखाड़कर नष्ट कर दें।",
+        "मराठी": "त्वरित मेटलॅक्सिल बुरशीनाशकाचा वापर करा. रोगट वनस्पती मुळासकट उपटून नष्ट करा."
+    },
+    "Potato___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Tomato___Bacterial_spot": {
+        "English": "Apply copper-based bactericide. Avoid overhead irrigation.",
+        "हिन्दी": "तांबा आधारित जीवाणुनाशक (bactericide) लगाएं। पौधों के ऊपर से पानी देने (ओवरहेड सिंचाई) से बचें।",
+        "मराठी": "तांबे-आधारित जिवाणूनाशक वापरा. पानावरील तुषार सिंचन (Overhead irrigation) टाळा."
+    },
+    "Tomato___Early_blight": {
+        "English": "Apply fungicide containing chlorothalonil. Remove lower infected leaves.",
+        "हिन्दी": "क्लोरोथैलोनिल युक्त कवकनाशी लगाएं। नीचे की संक्रमित पत्तियों को हटा दें।",
+        "मराठी": "क्लोरोथॅलोनिलयुक्त बुरशीनाशक वापरा. खालची संसर्ग झालेली पाने काढून टाका."
+    },
+    "Tomato___Late_blight": {
+        "English": "Apply metalaxyl immediately. Remove and destroy infected plants.",
+        "हिन्दी": "तुरंत मेटलैक्सिल कवकनाशी का छिड़काव करें। संक्रमित पौधों को खेतों से हटाकर नष्ट कर दें।",
+        "मराठी": "त्वरित मेटलॅक्सिल फवारा. संसर्ग झालेले झाड काढून नष्ट करा."
+    },
+    "Tomato___Leaf_Mold": {
+        "English": "Improve ventilation. Apply fungicide containing chlorothalonil.",
+        "हिन्दी": "खेत या ग्रीनहाउस में वेंटिलेशन (हवा का आना-जाना) सुधारें। क्लोरोथैलोनिल युक्त कवकनाशी लगाएं।",
+        "मराठी": "हवेची हालचाल (व्हेंटिलेशन) सुधारा. क्लोरोथॅलोनिल असलेले बुरशीनाशक वापरा."
+    },
+    "Tomato___Septoria_leaf_spot": {
+        "English": "Apply mancozeb or chlorothalonil. Remove infected leaves.",
+        "हिन्दी": "मैनकोजेब या क्लोरोथैलोनिल लगाएं। रोगग्रस्त पत्तियों को तोड़कर नष्ट करें।",
+        "मराठी": "मॅन्कोझेब किंवा क्लोरोथॅलोनिल वापरा. संसर्ग झालेली पाने काढून टाका."
+    },
+    "Tomato___Spider_mites Two-spotted_spider_mite": {
+        "English": "Apply miticide or neem oil. Increase humidity around plants.",
+        "हिन्दी": "माइटिसाइड (कीटनाशक) या नीम के तेल का प्रयोग करें। पौधों के आसपास नमी बढ़ाएं।",
+        "मराठी": "मायटीसाइड किंवा कडुनिंबाचे तेल वापरा. झाडांच्या आजूबाजूला आर्द्रता वाढवा."
+    },
+    "Tomato___Target_Spot": {
+        "English": "Apply fungicide. Ensure proper plant spacing for airflow.",
+        "हिन्दी": "उपयुक्त कवकनाशी लगाएं। हवा के अच्छे प्रवाह के लिए पौधों के बीच उचित दूरी सुनिश्चित करें।",
+        "मराठी": "योग्य बुरशीनाशक लावा. हवेच्या प्रवाहासाठी झाडांमध्ये योग्य अंतर ठेवा."
+    },
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+        "English": "Remove infected plants. Control whitefly population with insecticide.",
+        "हिन्दी": "संक्रमित पौधों को तुरंत उखाड़ें। कीटनाशक की मदद से सफेद मक्खी (Whitefly) की आबादी को नियंत्रित करें।",
+        "मराठी": "बाधित झाडे काढून टाका. कीटकनाशकाचा वापर करून पांढऱ्या माशीचे (Whitefly) नियंत्रण करा."
+    },
+    "Tomato___Tomato_mosaic_virus": {
+        "English": "Remove infected plants. Disinfect tools. Control aphids.",
+        "हिन्दी": "संक्रमित पौधों को नष्ट करें। कृषि उपकरणों को साफ और कीटाणुरहित करें। एफिड्स (कीटों) को नियंत्रित करें।",
+        "मराठी": "बाधित झाडे नष्ट करा. शेतीची अवजारे जंतूमुक्त करा. मावा (Aphids) कीड नियंत्रित करा."
+    },
+    "Tomato___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Strawberry___Leaf_scorch": {
+        "English": "Remove infected leaves. Apply fungicide containing captan. Avoid overhead watering.",
+        "हिन्दी": "संक्रमित पत्तियां हटाएं। कैप्टान युक्त कवकनाशी का प्रयोग करें। ऊपर से पानी छिड़कने से बचें।",
+        "मराठी": "बाधित पाने काढून टाका. कॅप्टन असलेले बुरशीनाशक वापरा. पानावरील थेट पाणी देणे टाळा."
+    },
+    "Strawberry___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Peach___Bacterial_spot": {
+        "English": "Apply copper-based bactericide in early spring. Prune infected branches.",
+        "हिन्दी": "शुरुआती वसंत में तांबा आधारित जीवाणुनाशक लगाएं। संक्रमित शाखाओं की छंटाई करें।",
+        "मराठी": "वसंत ऋतूच्या सुरुवातीला तांबे-आधारित जिवाणूनाशक वापरा. बाधित फांद्या छाटा."
+    },
+    "Peach___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Cherry_(including_sour)___Powdery_mildew": {
+        "English": "Apply sulfur-based fungicide. Ensure good air circulation.",
+        "हिन्दी": "सल्फर (गंधक) आधारित कवकनाशी लगाएं। हवा का अच्छा संचरण सुनिश्चित करें।",
+        "मराठी": "गंधक-आधारित बुरशीनाशक वापरा. हवा खेळती राहील याची खात्री करा."
+    },
+    "Cherry_(including_sour)___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Blueberry___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Pepper,_bell___Bacterial_spot": {
+        "English": "Apply copper bactericide. Avoid overhead irrigation.",
+        "हिन्दी": "कॉपर जीवाणुनाशक लगाएं। पौधों के ऊपर सीधे पानी देने से बचें।",
+        "मराठी": "तांबेयुक्त जिवाणूनाशक वापरा. तुषार सिंचन पद्धत टाळा."
+    },
+    "Pepper,_bell___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Soybean___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Squash___Powdery_mildew": {
+        "English": "Apply potassium bicarbonate or neem oil. Improve air circulation.",
+        "हिन्दी": "पोटेशियम बाइकार्बोनेट या नीम के तेल का प्रयोग करें। वायु संचरण में सुधार करें।",
+        "मराठी": "पोटॅशियम बायकार्बोनेट किंवा कडुनिंबाचे तेल वापरा. हवा खेळती ठेवा."
+    },
+    "Raspberry___healthy": {
+        "English": "No treatment needed. Continue regular care.",
+        "हिन्दी": "किसी उपचार की आवश्यकता नहीं है। नियमित देखभाल जारी रखें।",
+        "मराठी": "कोणत्याही उपचारांची गरज नाही. नियमित काळजी घेणे सुरू ठेवा."
+    },
+    "Orange___Haunglongbing_(Citrus_greening)": {
+        "English": "No cure available. Remove infected trees. Control psyllid insects.",
+        "हिन्दी": "कोई स्थायी इलाज उपलब्ध नहीं है। संक्रमित पेड़ों को हटा दें। सिलिड (psyllid) कीटों को नियंत्रित करें।",
+        "मराठी": "या रोगावर कोणताही खात्रीशीर इलाज नाही. संसर्ग झालेली झाडे काढून टाका आणि सिलीड कीटक नियंत्रित करा."
+    },
+}
+
+def get_treatment(cls, lang):
+    return treatments.get(cls, {}).get(lang, I18N[lang]["fallback_advice"])
+
+def get_translated_label(raw_pred, lang):
+    parts = raw_pred.split('___')
+    raw_crop = parts[0].replace('_', ' ').strip()
+    raw_disease = parts[1].replace('_', ' ').strip() if len(parts) > 1 else 'healthy'
+    
+    # Map raw strings to translation dictionary keys safely
+    clean_crop_key = "Corn (maize)" if "Corn" in raw_crop else ("Pepper, bell" if "Pepper" in raw_crop else ("Cherry (including sour)" if "Cherry" in raw_crop else raw_crop))
+    
+    crop_tr = CROP_TRANSLATIONS.get(clean_crop_key, {}).get(lang, raw_crop)
+    disease_tr = DISEASE_TRANSLATIONS.get(raw_disease, {}).get(lang, raw_disease)
+    
+    if 'healthy' in raw_pred.lower():
+        return f"{crop_tr} — " + ("स्वस्थ है" if lang == "हिन्दी" else ("निरोगी आहे" if lang == "मराठी" else "Healthy"))
+    else:
+        return f"{crop_tr} — {disease_tr}"
 
 def pbar(pct, h=8):
     return (
@@ -215,26 +484,36 @@ transform = transforms.Compose([
 
 model, class_names = load_model()
 
-st.markdown("""
+# Header & Multi-Language Dropdown Selection Container
+col_title, col_lang = st.columns([3, 1])
+with col_lang:
+    st.markdown('<div class="lang-selector-container">', unsafe_allow_html=True)
+    lang = st.selectbox("🌐 Language / भाषा चुनें / भाषा निवडा", ["English", "हिन्दी", "मराठी"])
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Assign chosen translation object
+tr = I18N[lang]
+
+st.markdown(f"""
 <div class="hero">
     <div class="hero-badge">AI-Powered · ResNet-50 · PlantVillage</div>
     <h1>Crop<span class="g">Guard</span> AI</h1>
-    <p>Instant crop disease detection for Indian farmers — snap, upload, protect.</p>
+    <p>{tr["hero_sub"]}</p>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("""
+st.markdown(f"""
 <div class="stat-grid">
-    <div class="stat-card"><div class="stat-number">99.57%</div><div class="stat-label">Accuracy</div></div>
-    <div class="stat-card"><div class="stat-number">38</div><div class="stat-label">Disease Classes</div></div>
-    <div class="stat-card"><div class="stat-number">87K</div><div class="stat-label">Training Images</div></div>
-    <div class="stat-card"><div class="stat-number">14</div><div class="stat-label">Crop Types</div></div>
+    <div class="stat-card"><div class="stat-number">99.57%</div><div class="stat-label">{tr["stat_acc"]}</div></div>
+    <div class="stat-card"><div class="stat-number">38</div><div class="stat-label">{tr["stat_cls"]}</div></div>
+    <div class="stat-card"><div class="stat-number">87K</div><div class="stat-label">{tr["stat_imgs"]}</div></div>
+    <div class="stat-card"><div class="stat-number">14</div><div class="stat-label">{tr["stat_crops"]}</div></div>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown('<hr class="divider">', unsafe_allow_html=True)
 
-uploaded_file = st.file_uploader("📂 Upload a clear leaf photo (JPG or PNG)", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader(tr["uploader_lbl"], type=["jpg", "jpeg", "png"])
 
 image = None
 if uploaded_file:
@@ -244,17 +523,17 @@ if uploaded_file:
         st.error(f"Could not read image: {e}")
 
 if not image:
-    st.markdown('<div class="placeholder-box"><div style="font-size:1.6rem;margin-bottom:0.4rem;">🌿</div><div class="placeholder-text">Upload a leaf photo above — your preview and analysis will appear here.</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="placeholder-box"><div style="font-size:1.6rem;margin-bottom:0.4rem;">🌿</div><div class="placeholder-text">{tr["placeholder"]}</div></div>', unsafe_allow_html=True)
 else:
     left, right = st.columns([1, 1], gap="large")
 
     with left:
-        st.markdown('<div class="glass-panel"><div class="panel-title">📸 Leaf Preview</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="glass-panel"><div class="panel-title">{tr["preview_title"]}</div>', unsafe_allow_html=True)
         st.image(image, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with right:
-        with st.spinner("🔍 Analysing your crop..."):
+        with st.spinner("🔍 Analysis..."):
             tensor = transform(image).unsqueeze(0)
 
             with torch.no_grad():
@@ -265,9 +544,15 @@ else:
             pred_idx = top3.indices[0].item()
             pred = class_names[pred_idx]
             conf = top3.values[0].item() * 100
+            
             parts = pred.split('___')
-            crop = parts[0].replace('_', ' ')
-            disease = parts[1].replace('_', ' ') if len(parts) > 1 else 'Unknown'
+            raw_crop = parts[0].replace('_', ' ').strip()
+            raw_disease = parts[1].replace('_', ' ').strip() if len(parts) > 1 else 'healthy'
+            
+            clean_crop_key = "Corn (maize)" if "Corn" in raw_crop else ("Pepper, bell" if "Pepper" in raw_crop else ("Cherry (including sour)" if "Cherry" in raw_crop else raw_crop))
+            
+            translated_crop = CROP_TRANSLATIONS.get(clean_crop_key, {}).get(lang, raw_crop)
+            translated_disease = DISEASE_TRANSLATIONS.get(raw_disease, {}).get(lang, raw_disease)
             healthy = 'healthy' in pred.lower()
 
             gradcam_img = generate_gradcam(model, tensor, pred_idx)
@@ -275,24 +560,24 @@ else:
         if healthy:
             banner = (
                 '<div class="healthy-banner">'
-                '<div class="banner-title">✅ ' + crop + ' is Healthy</div>'
-                '<div class="banner-sub">No disease detected. Keep up the good care!</div>'
+                f'<div class="banner-title">✅ {translated_crop} — {tr["healthy_title"]}</div>'
+                f'<div class="banner-sub">{tr["healthy_sub"]}</div>'
                 '</div>'
             )
         else:
             banner = (
                 '<div class="disease-banner">'
-                '<div class="banner-title">⚠️ ' + disease + '</div>'
-                '<div class="banner-sub">Detected in ' + crop + ' plant</div>'
+                f'<div class="banner-title">⚠️ {translated_disease}</div>'
+                f'<div class="banner-sub">({translated_crop})</div>'
                 '</div>'
             )
 
         metrics = (
             '<div class="metric-row">'
-            '<div class="metric-card"><div class="metric-label">🌱 Crop</div>'
-            '<div class="metric-value">' + crop + '</div></div>'
-            '<div class="metric-card"><div class="metric-label">🎯 Confidence</div>'
-            '<div class="metric-value">' + f'{conf:.1f}%' + '</div></div>'
+            f'<div class="metric-card"><div class="metric-label">{tr["crop_lbl"]}</div>'
+            f'<div class="metric-value">{translated_crop}</div></div>'
+            f'<div class="metric-card"><div class="metric-label">{tr["conf_lbl"]}</div>'
+            f'<div class="metric-value">{conf:.1f}%</div></div>'
             '</div>'
         )
 
@@ -300,8 +585,8 @@ else:
 
         treatment = (
             '<div class="treatment-box">'
-            '<div class="treatment-title">💊 Treatment Advice</div>'
-            '<div class="treatment-text">' + get_treatment(pred) + '</div>'
+            f'<div class="treatment-title">{tr["treatment_lbl"]}</div>'
+            f'<div class="treatment-text">{get_treatment(pred, lang)}</div>'
             '</div>'
         )
 
@@ -309,22 +594,21 @@ else:
         for i in range(3):
             cls = class_names[top3.indices[i].item()]
             prob = top3.values[i].item() * 100
-            p2 = cls.split('___')
-            lbl = p2[0].replace('_', ' ') + ' — ' + (p2[1].replace('_', ' ') if len(p2) > 1 else '')
-            top3_rows += '<span class="pred-label">' + lbl + ': ' + f'{prob:.1f}%' + '</span>' + pbar(prob, 7)
+            lbl = get_translated_label(cls, lang)
+            top3_rows += f'<span class="pred-label">{lbl}: {prob:.1f}%</span>' + pbar(prob, 7)
 
         top3_block = (
             '<details style="margin-top:0.8rem;">'
             '<summary style="cursor:pointer;font-size:0.82rem;font-weight:700;color:#1e3a08;'
             'padding:0.5rem;background:rgba(140,190,100,0.30);border-radius:8px;list-style:none;">'
-            '📊 Top 3 Predictions</summary>'
+            f'{tr["top3_lbl"]}</summary>'
             '<div style="padding:0.6rem 0.2rem 0.2rem;">' + top3_rows + '</div>'
             '</details>'
         )
 
         html = (
             '<div class="glass-panel">'
-            '<div class="panel-title">🔬 Analysis Results</div>'
+            f'<div class="panel-title">{tr["analysis_title"]}</div>'
             + banner + metrics + conf_bar + treatment + top3_block +
             '</div>'
         )
@@ -333,46 +617,40 @@ else:
 
     # Grad-CAM section
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
-    st.markdown('<div class="glass-panel"><div class="panel-title">🔥 Grad-CAM — Where the AI Looked</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="glass-panel"><div class="panel-title">{tr["gradcam_title"]}</div>', unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1.2, 1, 1.2])
     with col2:
         st.image(gradcam_img, use_container_width=True)
-    st.markdown('<div class="gradcam-note">🔴 Red/warm areas = parts of the leaf the AI focused on most to make its prediction.</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="gradcam-note">{tr["gradcam_desc"]}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<hr class="divider">', unsafe_allow_html=True)
-st.markdown('<div class="section-label">How it works</div>', unsafe_allow_html=True)
-st.markdown("""
+st.markdown(f'<div class="section-label">{tr["how_works"]}</div>', unsafe_allow_html=True)
+st.markdown(f"""
 <div class="steps-grid">
-    <div class="step-card"><div class="step-number">01</div><div class="step-title">📸 Take a clear photo</div><div class="step-desc">Close-up of a single leaf in good natural lighting. Avoid blurry or dark images.</div></div>
-    <div class="step-card"><div class="step-number">02</div><div class="step-title">⬆️ Upload the image</div><div class="step-desc">Upload your JPG or PNG above. Our ResNet-50 model processes it instantly.</div></div>
-    <div class="step-card"><div class="step-number">03</div><div class="step-title">💊 Get treatment advice</div><div class="step-desc">Receive instant diagnosis with confidence score and actionable treatment steps.</div></div>
+    <div class="step-card"><div class="step-number">01</div><div class="step-title">{tr["step1_t"]}</div><div class="step-desc">{tr["step1_d"]}</div></div>
+    <div class="step-card"><div class="step-number">02</div><div class="step-title">{tr["step2_t"]}</div><div class="step-desc">{tr["step2_d"]}</div></div>
+    <div class="step-card"><div class="step-number">03</div><div class="step-title">{tr["step3_t"]}</div><div class="step-desc">{tr["step3_d"]}</div></div>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="section-label">Supported Crops</div>', unsafe_allow_html=True)
-st.markdown("""
-<div class="crops-grid">
-    <div class="crop-pill"><span class="crop-emoji">🍎</span>Apple</div>
-    <div class="crop-pill"><span class="crop-emoji">🌽</span>Corn</div>
-    <div class="crop-pill"><span class="crop-emoji">🍇</span>Grape</div>
-    <div class="crop-pill"><span class="crop-emoji">🥔</span>Potato</div>
-    <div class="crop-pill"><span class="crop-emoji">🍅</span>Tomato</div>
-    <div class="crop-pill"><span class="crop-emoji">🍑</span>Peach</div>
-    <div class="crop-pill"><span class="crop-emoji">🍒</span>Cherry</div>
-    <div class="crop-pill"><span class="crop-emoji">🫐</span>Blueberry</div>
-    <div class="crop-pill"><span class="crop-emoji">🌶️</span>Pepper</div>
-    <div class="crop-pill"><span class="crop-emoji">🍓</span>Strawberry</div>
-    <div class="crop-pill"><span class="crop-emoji">🌿</span>Soybean</div>
-    <div class="crop-pill"><span class="crop-emoji">🎃</span>Squash</div>
-    <div class="crop-pill"><span class="crop-emoji">🍊</span>Orange</div>
-    <div class="crop-pill"><span class="crop-emoji">🍇</span>Raspberry</div>
-</div>
-""", unsafe_allow_html=True)
+# Supported Crops Pill Labels Map
+pill_crops = [
+    ("🍎", "Apple"), ("🌽", "Corn (maize)"), ("🍇", "Grape"), ("🥔", "Potato"), ("🍅", "Tomato"),
+    ("🍑", "Peach"), ("🍒", "Cherry (including sour)"), ("🫐", "Blueberry"), ("🌶️", "Pepper, bell"),
+    ("🍓", "Strawberry"), ("🌿", "Soybean"), ("🎃", "Squash"), ("🍊", "Orange"), ("🍇", "Raspberry")
+]
 
-st.markdown("""
+crop_pills_html = ""
+for emoji, c_key in pill_crops:
+    trans_name = CROP_TRANSLATIONS.get(c_key, {}).get(lang, c_key)
+    crop_pills_html += f'<div class="crop-pill"><span class="crop-emoji">{emoji}</span>{trans_name}</div>'
+
+st.markdown(f'<div class="section-label">{tr["supported_crops"]}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="crops-grid">{crop_pills_html}</div>', unsafe_allow_html=True)
+
+st.markdown(f"""
 <div class="footer">
-    Built with ❤️ using ResNet-50 + PyTorch · Trained on PlantVillage Dataset (87K images)<br>
-    For farmers across India 🇮🇳 · Kisan Call Centre: 1800-180-1551 (Free, 24/7)
+    {tr["footer_text"]}
 </div>
 """, unsafe_allow_html=True)
